@@ -1,5 +1,6 @@
 import random
 import sys
+import datetime
 import matplotlib.pyplot as plt
 
 world_boiler_start = """<sdf version='1.6'>
@@ -229,7 +230,7 @@ class MapGenerator():
 
   # determines how far a given cell is from a wall (non-diagonal)
   def distToClosestWall(self, r, c, currCount, currBest):
-    if r < 0 or r >= self.rows - 1 or c < 0 or c >= self.cols - 1:
+    if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
       return 0
 
     if self.map[r][c] == 1:
@@ -315,6 +316,10 @@ def main():
     showHeatMap = 1
     if len(sys.argv) >= 2:
       seed = sys.argv[1]
+    else:
+      seed = datetime.datetime.now()
+      print(seed)
+
     if len(sys.argv) >= 3:
       smooths = int(sys.argv[2])
     if len(sys.argv) >= 4:
@@ -346,6 +351,7 @@ def main():
       ax[1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
       plt.show()
 
+    # only show the map itself
     else:
       plt.imshow(map, cmap='Greys', interpolation='nearest')
       plt.show()
