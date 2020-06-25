@@ -227,6 +227,41 @@ class MapGenerator():
   def getMap(self):
     return self.map
 
+  # determines how far a given cell is from a wall (non-diagonal)
+  def distToClosestWall(self, r, c, currCount, currBest):
+    if r < 0 or r >= self.rows - 1 or c < 0 or c >= self.cols - 1:
+      return 0
+
+    if self.map[r][c] == 1:
+      return 0
+
+    if currCount >= currBest:
+      return sys.maxint
+
+    bestUp = 1 + self.distToClosestWall(r-1, c, currCount+1, currBest)
+    if bestUp < currBest:
+      currBest = bestUp
+    
+    bestDown = 1 + self.distToClosestWall(r+1, c, currCount+1, currBest)
+    if bestDown < currBest:
+      currBest = bestDown
+    
+    bestLeft = 1 + self.distToClosestWall(r, c-1, currCount+1, currBest)
+    if bestLeft < currBest:
+      currBest = bestLeft
+
+    bestRight = 1 + self.distToClosestWall(r, c+1, currCount+1, currBest)
+
+    return min(bestUp, bestDown, bestLeft, bestRight)
+
+  def distsToWall(self):
+    dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        dists[r][c] = self.distToClosestWall(r, c, 0, sys.maxint)
+
+    return dists
+
 class WorldWriter():
   def __init__(self, filename):
     self.file = open(filename, "w")
@@ -273,16 +308,19 @@ def main():
         + "/worlds/proc_world.world")
 
     # get user parameters, if provided
-    # usage: gen_world_ca.py <seed> <smoothing_iterations> <initial_fill_pct>
+    # usage: gen_world_ca.py <seed> <smoothing_iterations> <initial_fill_pct> <show_heatmap>
     seed = None
     smooths = 5
     fillPct = 0.35
+    showHeatMap = 1
     if len(sys.argv) >= 2:
       seed = sys.argv[1]
     if len(sys.argv) >= 3:
       smooths = int(sys.argv[2])
     if len(sys.argv) >= 4:
       fillPct = float(sys.argv[3])
+    if len(sys.argv) >= 5:
+      showHeatMap = int(sys.argv[4])
 
     # create 25x25 world generator and run smoothing iterations
     generator = MapGenerator(25, 25, fillPct, seed)
@@ -300,9 +338,17 @@ def main():
     writer.placeCylinders()
     writer.close()
 
-    # display world
-    plt.imshow(map, cmap='Greys', interpolation='nearest')
-    plt.show()
+    # display world and heatmap of distances
+    if showHeatMap:
+      dists = generator.distsToWall()
+      f, ax = plt.subplots(1, 2)
+      ax[0].imshow(map, cmap='Greys', interpolation='nearest')
+      ax[1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
+      plt.show()
+
+    else:
+      plt.imshow(map, cmap='Greys', interpolation='nearest')
+      plt.show()
 
 if __name__ == "__main__":
     main()
