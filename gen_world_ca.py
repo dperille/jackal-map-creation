@@ -1,6 +1,7 @@
 import random
 import sys
 import datetime
+import Queue
 import matplotlib.pyplot as plt
 
 world_boiler_start = """<sdf version='1.6'>
@@ -215,7 +216,7 @@ class MapGenerator():
     count = 0
     for i in range(r - 1, r + 2):
       for j in range(c - 1, c + 2):
-        if i >= 0 and i < self.rows and j >= 0 and j < self.cols:
+        if self.isInMap(i, j):
           if i != r or j != c:
             count += self.map[i][j]
 
@@ -231,7 +232,7 @@ class MapGenerator():
   # determines how far a given cell is from a wall (non-diagonal)
   def distToClosestWall(self, r, c, currCount, currBest):
     if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
-      return 0
+      return sys.maxint
 
     if self.map[r][c] == 1:
       return 0
@@ -262,6 +263,40 @@ class MapGenerator():
         dists[r][c] = self.distToClosestWall(r, c, 0, sys.maxint)
 
     return dists
+
+
+  def biggestLeftRegion(self):
+    return 0
+
+  def biggestRightRegion(self):
+    return 0
+
+  # use flood-fill algorithm to find the open region including (r, c)
+  def getRegion(self, r, c):
+    queue = Queue.Queue(maxsize=0)
+    region = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    
+    if self.map[r][c] == 0:
+      queue.put((r, c))
+      region[r][c] = 1
+
+    while not queue.empty():
+      coord_r, coord_c = queue.get()
+
+      # check four cardinal neighbors
+      for i in range(coord_r-1, coord_r+2):
+        for j in range(coord_c-1, coord_c+2):
+          if self.isInMap(i, j) and (i == coord_r or j == coord_c):
+            # if empty space and not checked yet
+            if self.map[i][j] == 0 and region[i][j] == 0:
+              # add to region and put in queue
+              region[i][j] = 1
+              queue.put((i, j))
+
+    return region
+
+  def isInMap(self, r, c):
+    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
 class WorldWriter():
   def __init__(self, filename):
@@ -335,13 +370,13 @@ def main():
 
     # write obstacles to .world file
     map = generator.getMap()
-    for r in range(len(map)):
+    """for r in range(len(map)):
       for c in range(len(map[0])):
         if map[r][c] == 1:
           writer.createCylinder(r-10, c, 0, 0, 0, 0)
 
     writer.placeCylinders()
-    writer.close()
+    writer.close()"""
 
     # display world and heatmap of distances
     if showHeatMap:
