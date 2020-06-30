@@ -264,21 +264,16 @@ class MapGenerator():
 
     return dists
 
-
-  def biggestLeftRegion(self):
-    return 0
-
-  def biggestRightRegion(self):
-    return 0
-
   # use flood-fill algorithm to find the open region including (r, c)
   def getRegion(self, r, c):
     queue = Queue.Queue(maxsize=0)
     region = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    
+    size = 0
+
     if self.map[r][c] == 0:
       queue.put((r, c))
       region[r][c] = 1
+      size += 1
 
     while not queue.empty():
       coord_r, coord_c = queue.get()
@@ -292,8 +287,35 @@ class MapGenerator():
               # add to region and put in queue
               region[i][j] = 1
               queue.put((i, j))
+              size += 1
 
-    return region
+    return region, size
+
+  # returns the largest contiguous region with a tile in the leftmost column
+  def biggestLeftRegion(self):
+    maxSize = 0
+    maxRegion = []
+    for row in range(self.rows):
+      region, size = self.getRegion(row, 0)
+
+      if size > maxSize:
+        maxSize = size
+        maxRegion = region
+
+    return maxRegion
+
+  # returns the largest contiguous region with a tile in the rightmost column
+  def biggestRightRegion(self):
+    maxSize = 0
+    maxRegion = []
+    for row in range(self.rows):
+      region, size = self.getRegion(row, self.cols-1)
+
+      if size > maxSize:
+        maxSize = size
+        maxRegion = region
+
+    return maxRegion
 
   def isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
