@@ -2,6 +2,7 @@ import random
 import sys
 import datetime
 import Queue
+import math
 import matplotlib.pyplot as plt
 
 world_boiler_start = """<sdf version='1.6'>
@@ -192,7 +193,7 @@ class MapGenerator():
     self._randomFill()
     for n in range(self.smoothIter):
       self._smooth()
-  
+
   def _randomFill(self):
     if self.seed:
       random.seed(self.seed)
@@ -323,8 +324,21 @@ class MapGenerator():
 
     return maxRegion
 
+  def regionsAreConnected(self, regionA, regionB):
+    for r in range(len(regionA)):
+      for c in range(len(regionA[0])):
+        if regionA[r][c] != regionB[r][c]:
+          return False
+
+        # if they share any common spaces, they're connected
+        elif regionA[r][c] == 1 and regionB[r][c] == 1:
+          return True
+
+    return False
+
   def isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+
 
 class WorldWriter():
   def __init__(self, filename):
