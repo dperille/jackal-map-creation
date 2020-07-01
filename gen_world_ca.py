@@ -180,14 +180,20 @@ cylinder_place = """<model name='unit_cylinder_%d'>
       </model>"""
 
 class MapGenerator():
-  def __init__(self, rows, cols, randFillPct, seed=None):
+  def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
     self.map = [[0 for i in range(cols)] for j in range(rows)]
     self.rows = rows
     self.cols = cols
     self.randFillPct = randFillPct
     self.seed = hash(seed)
+    self.smoothIter = smoothIter
 
-  def randomFill(self):
+  def __call__(self):
+    self._randomFill()
+    for n in range(self.smoothIter):
+      self._smooth()
+  
+  def _randomFill(self):
     if self.seed:
       random.seed(self.seed)
 
@@ -198,21 +204,21 @@ class MapGenerator():
         else:
           self.map[r][c] = 1 if random.random() < self.randFillPct else 0
 
-  def smooth(self):
+  def _smooth(self):
     newmap = [[self.map[r][c] for c in range(self.cols)] for r in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
         # if more than 4 filled neighbors, fill this tile
-        if self.tileNeighbors(r, c) > 4:
+        if self._tileNeighbors(r, c) > 4:
           newmap[r][c] = 1
 
         # if less than 2 filled neighbors, empty this one
-        elif self.tileNeighbors(r, c) < 2:
+        elif self._tileNeighbors(r, c) < 2:
           newmap[r][c] = 0
 
     self.map = newmap
 
-  def tileNeighbors(self, r, c):
+  def _tileNeighbors(self, r, c):
     count = 0
     for i in range(r - 1, r + 2):
       for j in range(c - 1, c + 2):
@@ -230,7 +236,7 @@ class MapGenerator():
     return self.map
 
   # determines how far a given cell is from a wall (non-diagonal)
-  def distToClosestWall(self, r, c, currCount, currBest):
+  def _distToClosestWall(self, r, c, currCount, currBest):
     if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
       return sys.maxint
 
@@ -240,19 +246,19 @@ class MapGenerator():
     if currCount >= currBest:
       return sys.maxint
 
-    bestUp = 1 + self.distToClosestWall(r-1, c, currCount+1, currBest)
+    bestUp = 1 + self._distToClosestWall(r-1, c, currCount+1, currBest)
     if bestUp < currBest:
       currBest = bestUp
     
-    bestDown = 1 + self.distToClosestWall(r+1, c, currCount+1, currBest)
+    bestDown = 1 + self._distToClosestWall(r+1, c, currCount+1, currBest)
     if bestDown < currBest:
       currBest = bestDown
     
-    bestLeft = 1 + self.distToClosestWall(r, c-1, currCount+1, currBest)
+    bestLeft = 1 + self._distToClosestWall(r, c-1, currCount+1, currBest)
     if bestLeft < currBest:
       currBest = bestLeft
 
-    bestRight = 1 + self.distToClosestWall(r, c+1, currCount+1, currBest)
+    bestRight = 1 + self._distToClosestWall(r, c+1, currCount+1, currBest)
 
     return min(bestUp, bestDown, bestLeft, bestRight)
 
@@ -260,12 +266,12 @@ class MapGenerator():
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        dists[r][c] = self.distToClosestWall(r, c, 0, sys.maxint)
+        dists[r][c] = self._distToClosestWall(r, c, 0, sys.maxint)
 
     return dists
 
   # use flood-fill algorithm to find the open region including (r, c)
-  def getRegion(self, r, c):
+  def _getRegion(self, r, c):
     queue = Queue.Queue(maxsize=0)
     region = [[0 for i in range(self.cols)] for j in range(self.rows)]
     size = 0
@@ -296,7 +302,7 @@ class MapGenerator():
     maxSize = 0
     maxRegion = []
     for row in range(self.rows):
-      region, size = self.getRegion(row, 0)
+      region, size = self._getRegion(row, 0)
 
       if size > maxSize:
         maxSize = size
@@ -309,7 +315,7 @@ class MapGenerator():
     maxSize = 0
     maxRegion = []
     for row in range(self.rows):
-      region, size = self.getRegion(row, self.cols-1)
+      region, size = self._getRegion(row, self.cols-1)
 
       if size > maxSize:
         maxSize = size
@@ -325,9 +331,9 @@ class WorldWriter():
     self.file = open(filename, "w")
     self.numCylinders = 0
     self.cylinderList = []
-    self.writeStarterBoiler()
+    self._writeStarterBoiler()
 
-  def writeStarterBoiler(self):
+  def _writeStarterBoiler(self):
     self.file.write(world_boiler_start)
 
   def createCylinder(self, x, y, z, a, b, c):
@@ -338,11 +344,11 @@ class WorldWriter():
     self.cylinderList.append([x, y, z, a, b, c])
     self.numCylinders += 1
 
-  def writeMidBoiler(self):
+  def _writeMidBoiler(self):
       self.file.write(world_boiler_mid)
 
   def placeCylinders(self):
-    self.writeMidBoiler()
+    self._writeMidBoiler()
 
     for i in range(self.numCylinders):
       self.file.write(cylinder_place % (
@@ -352,9 +358,9 @@ class WorldWriter():
           self.cylinderList[i][3], self.cylinderList[i][4], self.cylinderList[i][5], 
       ))
 
-    self.writeEndBoiler()
+    self._writeEndBoiler()
 
-  def writeEndBoiler(self):
+  def _writeEndBoiler(self):
     self.file.write(world_boiler_end)
 
   def close(self):
@@ -385,10 +391,8 @@ def main():
       showHeatMap = int(sys.argv[4])
 
     # create 25x25 world generator and run smoothing iterations
-    generator = MapGenerator(25, 25, fillPct, seed)
-    generator.randomFill()
-    for n in range(smooths):
-      generator.smooth()
+    generator = MapGenerator(25, 25, fillPct, seed, smooths)
+    generator()
 
     # write obstacles to .world file
     map = generator.getMap()
