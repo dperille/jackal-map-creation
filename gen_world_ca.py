@@ -339,6 +339,134 @@ class MapGenerator():
   def isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
+  # returns a path between all points in the list points using A*
+  def getPath(self, points):
+    num_points = len(points)
+    if num_points < 2:
+      raise Exception("Path needs at least two points")
+    
+    # check if any points aren't empty
+    for point in points:
+      if self.map[point[0]][point[1]] == 1:
+        raise Exception("The point (%d, %d) is a wall" % (point[0], point[1]))
+
+    overall_path = []
+    for n in range(num_points - 1):
+      overall_path.append(points[n])
+
+      # generate path between this point and the next one in the list
+      a_star = AStarSearch(self.map)
+      intermediate_path = a_star(points[n], points[n+1])
+      
+      # add to the overall path
+      if n > 0:
+        intermediate_path.pop(0)
+      overall_path.extend(intermediate_path)
+
+    return overall_path
+    
+
+class AStarSearch:
+  def __init__(self, map):
+    self.map = map
+    self.map_rows = len(map)
+    self.map_cols = len(map[0])
+
+  def __call__(self, start_coord, end_coord):
+    # initialize start and end nodes
+    start_node = Node(None, start_coord)
+    start_node.g = start_node.h = start_node.f = 0
+    end_node = Node(None, end_coord)
+    end_node.g = end_node.h = end_node.f = 0
+
+    # initialize lists to track nodes we've visited or not
+    visited = []
+    not_visited = []
+
+    # add start to nodes yet to be processed
+    not_visited.append(start_node)
+
+    # while there are nodes to process
+    while len(not_visited) > 0:
+      # get lowest cost next node
+      curr_node = not_visited[0]
+      curr_idx = 0
+      for idx, node in enumerate(not_visited):
+        if node.f < curr_node.f:
+          curr_node = node
+          curr_idx = idx
+
+      # mark this node as processed
+      not_visited.pop(curr_idx)
+      visited.append(curr_node)
+
+      # if this node is at end of the path, return
+      if curr_node == end_node:
+        return self.returnPath(curr_node)
+
+      # find all valid, walkable neighbors of this node
+      children = []
+      for move in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+
+        # calculate neighbor position
+        child_pos = (curr_node.r + move[0], curr_node.c + move[1])
+        
+        # if outside the map, not possible
+        if child_pos[0] < 0 or child_pos[0] >= self.map_rows or child_pos[1] < 0 or child_pos[1] >= self.map_cols:
+          continue
+
+        # if a wall tile, not possible
+        if self.map[child_pos[0]][child_pos[1]] == 1:
+          continue
+
+        # if neighbor is possible to reach, add to list of neighbors
+        child_node = Node(curr_node, child_pos)
+        children.append(child_node)
+
+
+      # loop through all walkable neighbors of this node
+      for child in children:
+
+        # if neighbor already visited, not usable
+        if child in visited:
+          continue
+
+        # calculate f, g, h values
+        child.g += 1
+        child.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
+        child.f = child.g + child.h
+
+        # if this node is already in the unprocessed list
+        # with a g-value lower than what we have, don't add it
+        if len([i for i in not_visited if child == i and child.g > i.g]) > 0:
+          continue
+
+        not_visited.append(child)
+
+  # generate the path from start to end
+  def returnPath(self, end_node):
+    path = []
+    curr_node = end_node
+    while curr_node != None:
+      path.append((curr_node.r, curr_node.c))
+      curr_node = curr_node.parent
+
+    return path
+
+
+class Node:
+  def __init__(self, parent, coord):
+    self.parent = parent
+    self.r = coord[0]
+    self.c = coord[1]
+
+    self.g = 0
+    self.h = 0
+    self.f = 0
+
+  def __eq__(self, other):
+    return self.r == other.r and self.c == other.c
+
 
 class WorldWriter():
   def __init__(self, filename):
