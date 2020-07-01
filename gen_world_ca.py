@@ -451,6 +451,7 @@ class AStarSearch:
       path.append((curr_node.r, curr_node.c))
       curr_node = curr_node.parent
 
+    path.reverse()
     return path
 
 
@@ -545,6 +546,41 @@ def main():
 
     writer.placeCylinders()
     writer.close()"""
+
+    """ Generate random points to demonstrate path """
+    startRegion = generator.biggestLeftRegion()
+    endRegion = generator.biggestRightRegion()
+
+    left_open = []
+    mid_open = []
+    right_open = []
+    for r in range(len(map)):
+      if startRegion[r][0] == 1:
+        left_open.append(r)
+      if endRegion[r][24] == 1:
+        right_open.append(r)
+      if map[r][12] == 0:
+        mid_open.append(r)
+    left_coord = left_open[random.randint(0, len(left_open)-1)]
+    mid_coord = mid_open[random.randint(0, len(mid_open)-1)]
+    right_coord = right_open[random.randint(0, len(right_open)-1)]
+    """ End random point selection """
+
+    # generate path, if possible
+    path = []
+    if generator.regionsAreConnected(startRegion, endRegion):
+      print("%d, %d" % (left_coord, right_coord))
+      path = generator.getPath([(left_coord, 0), (mid_coord, 12), (right_coord, 24)])
+      print("Found path!")
+    else:
+      print("No path possible")
+
+    # convert path list to matrix
+    for r, c in path:
+      map[r][c] = 0.35
+    map[left_coord][0] = 0.65
+    map[mid_coord][12] = 0.65
+    map[right_coord][24] = 0.65
 
     # display world and heatmap of distances
     if showHeatMap:
