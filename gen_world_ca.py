@@ -5,180 +5,17 @@ import Queue
 import math
 import matplotlib.pyplot as plt
 
-world_boiler_start = """<sdf version='1.6'>
-  <world name='default'>
-    <light name='sun' type='directional'>
-      <cast_shadows>1</cast_shadows>
-      <pose frame=''>0 0 10 0 -0 0</pose>
-      <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.1 0.1 0.1 1</specular>
-      <attenuation>
-        <range>1000</range>
-        <constant>0.9</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <direction>-0.5 0.5 -1</direction>
-    </light>
-    <model name='ground_plane'>
-      <static>1</static>
-      <link name='link'>
-        <collision name='collision'>
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <surface>
-            <friction>
-              <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
-              </ode>
-              <torsional>
-                <ode/>
-              </torsional>
-            </friction>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <cast_shadows>0</cast_shadows>
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Grey</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <kinematic>0</kinematic>
-        <gravity>1</gravity>
-      </link>
-    </model>
-    <gravity>0 0 -9.8</gravity>
-    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
-    <atmosphere type='adiabatic'/>
-    <physics name='default_physics' default='0' type='ode'>
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1</real_time_factor>
-      <real_time_update_rate>1000</real_time_update_rate>
-    </physics>
-    <scene>
-      <ambient>0.4 0.4 0.4 1</ambient>
-      <background>0.7 0.7 0.7 1</background>
-      <shadows>1</shadows>
-    </scene>
-    <spherical_coordinates>
-      <surface_model>EARTH_WGS84</surface_model>
-      <latitude_deg>0</latitude_deg>
-      <longitude_deg>0</longitude_deg>
-      <elevation>0</elevation>
-      <heading_deg>0</heading_deg>
-    </spherical_coordinates>"""
-world_boiler_mid = """<state world_name='default'>
-      <sim_time>46 817000000</sim_time>
-      <real_time>50 373153562</real_time>
-      <wall_time>1591479841 622585835</wall_time>
-      <iterations>46817</iterations>
-      <model name='ground_plane'>
-        <pose frame=''>0 0 0 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose frame=''>0 0 0 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>"""
-world_boiler_end = """<light name='sun'>
-        <pose frame=''>0 0 10 0 -0 0</pose>
-      </light>
-    </state>
-    <gui fullscreen='0'>
-      <camera name='user_camera'>
-        <pose frame=''>5 -5 2 0 0.275643 2.35619</pose>
-        <view_controller>orbit</view_controller>
-        <projection_type>perspective</projection_type>
-      </camera>
-    </gui>
-  </world>
-</sdf>"""
-cylinder_define = """<model name='unit_cylinder_%d'>
-      <pose frame=''>%f %f %f %f %f %f</pose>
-      <link name='link'>
-        <inertial>
-          <mass>1</mass>
-          <inertia>
-            <ixx>0.145833</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.145833</iyy>
-            <iyz>0</iyz>
-            <izz>0.125</izz>
-          </inertia>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1</length>
-            </cylinder>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <cylinder>
-              <radius>0.5</radius>
-              <length>1</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <script>
-              <name>Gazebo/Grey</name>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <kinematic>0</kinematic>
-        <gravity>1</gravity>
-      </link>
-    </model>"""
-cylinder_place = """<model name='unit_cylinder_%d'>
-        <pose frame=''>%f %f %f %f %f %f</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose frame=''>%f %f %f %f %f %f</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 -9.8 0 -0 0</acceleration>
-          <wrench>0 0 -9.8 0 -0 0</wrench>
-        </link>
-      </model>"""
+# define boilerplate code needed to write to .world file
+with open("./world-boilerplate/world_boiler_start.txt") as f:
+      world_boiler_start = f.read()
+with open("./world-boilerplate/world_boiler_mid.txt") as f:
+      world_boiler_mid = f.read()
+with open("./world-boilerplate/world_boiler_end.txt") as f:
+      world_boiler_end = f.read()
+with open("./world-boilerplate/cylinder_define.txt") as f:
+      cylinder_define = f.read()
+with open("./world-boilerplate/cylinder_place.txt") as f:
+      cylinder_place = f.read()
 
 class MapGenerator():
   def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
@@ -470,6 +307,7 @@ class Node:
 
 
 class WorldWriter():
+
   def __init__(self, filename):
     self.file = open(filename, "w")
     self.numCylinders = 0
@@ -524,7 +362,7 @@ def main():
       seed = sys.argv[1]
     else:
       seed = datetime.datetime.now()
-      print(seed)
+      print("Seed: %d" % (hash(seed)))
 
     if len(sys.argv) >= 3:
       smooths = int(sys.argv[2])
@@ -539,13 +377,13 @@ def main():
 
     # write obstacles to .world file
     map = generator.getMap()
-    """for r in range(len(map)):
+    for r in range(len(map)):
       for c in range(len(map[0])):
         if map[r][c] == 1:
           writer.createCylinder(r-10, c, 0, 0, 0, 0)
 
     writer.placeCylinders()
-    writer.close()"""
+    writer.close()
 
     """ Generate random points to demonstrate path """
     startRegion = generator.biggestLeftRegion()
@@ -569,7 +407,7 @@ def main():
     # generate path, if possible
     path = []
     if generator.regionsAreConnected(startRegion, endRegion):
-      print("%d, %d" % (left_coord, right_coord))
+      print("Points: (%d, 0), (%d, 12), (%d, 24)" % (left_coord, mid_coord, right_coord))
       path = generator.getPath([(left_coord, 0), (mid_coord, 12), (right_coord, 24)])
       print("Found path!")
     else:
