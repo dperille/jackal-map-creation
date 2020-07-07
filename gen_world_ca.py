@@ -440,19 +440,26 @@ def main():
       print("No path possible")
 
     # convert path list to matrix
+    map_with_path = [[map[j][i] for i in range(len(map[0]))] for j in range(len(map))]
     for r, c in path:
-      map[r][c] = 0.35
-    map[left_coord][0] = 0.65
-    map[mid_coord][12] = 0.65
-    map[right_coord][24] = 0.65
+      map_with_path[r][c] = 0.35
+    map_with_path[left_coord][0] = 0.65
+    map_with_path[mid_coord][12] = 0.65
+    map_with_path[right_coord][24] = 0.65
 
     # display world and heatmap of distances
     if showHeatMap:
       diff = DifficultyMetrics(map)
       dists = diff.closestWall()
-      f, ax = plt.subplots(1, 2)
-      ax[0].imshow(map, cmap='Greys', interpolation='nearest')
+      d_radius = 3
+      densities = diff.density(d_radius)
+      f, ax = plt.subplots(1, 3)
+      ax[0].imshow(map_with_path, cmap='Greys', interpolation='nearest')
+      ax[0].set_title("Map and A* path")
       ax[1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
+      ax[1].set_title("Distance to \nclosest obstacle")
+      ax[2].imshow(densities, cmap='binary', interpolation='nearest')
+      ax[2].set_title("%d-square\n radius density" % d_radius)
       plt.show()
 
     # only show the map itself
