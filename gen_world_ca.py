@@ -73,41 +73,6 @@ class MapGenerator():
   def getMap(self):
     return self.map
 
-  # determines how far a given cell is from a wall (non-diagonal)
-  def _distToClosestWall(self, r, c, currCount, currBest):
-    if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
-      return sys.maxint
-
-    if self.map[r][c] == 1:
-      return 0
-
-    if currCount >= currBest:
-      return sys.maxint
-
-    bestUp = 1 + self._distToClosestWall(r-1, c, currCount+1, currBest)
-    if bestUp < currBest:
-      currBest = bestUp
-    
-    bestDown = 1 + self._distToClosestWall(r+1, c, currCount+1, currBest)
-    if bestDown < currBest:
-      currBest = bestDown
-    
-    bestLeft = 1 + self._distToClosestWall(r, c-1, currCount+1, currBest)
-    if bestLeft < currBest:
-      currBest = bestLeft
-
-    bestRight = 1 + self._distToClosestWall(r, c+1, currCount+1, currBest)
-
-    return min(bestUp, bestDown, bestLeft, bestRight)
-
-  def distsToWall(self):
-    dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        dists[r][c] = self._distToClosestWall(r, c, 0, sys.maxint)
-
-    return dists
-
   # use flood-fill algorithm to find the open region including (r, c)
   def _getRegion(self, r, c):
     queue = Queue.Queue(maxsize=0)
@@ -201,7 +166,67 @@ class MapGenerator():
       overall_path.extend(intermediate_path)
 
     return overall_path
+
+class DifficultyMetrics:
+  def __init__(self, map):
+    self.map = map
+    self.rows = len(map)
+    self.cols = len(map[0])
+
+  def density(self, radius):
+    dens = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        if self.map[r][c] == 0:
+          dens[r][c] = self._densityOfTile(r, c, radius)
+        else:
+          dens[r][c] = (radius * 2) ** 2
+
+    return dens
+
+  def closestWall(self):
+    dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        dists[r][c] = self._distToClosestWall(r, c, 0, sys.maxint)
+
+    return dists
+
+  def _densityOfTile(self, row, col, radius):
+    count = 0
+    for r in range(row-radius, row+radius+1):
+      for c in range(col-radius, col+radius+1):
+        if r >= 0 and r < self.rows and c >= 0 and c < self.cols and (r!=row or c!=col):
+          count += self.map[r][c]
+
+    return count   
+
+  # determines how far a given cell is from a wall (non-diagonal)
+  def _distToClosestWall(self, r, c, currCount, currBest):
+    if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
+      return sys.maxint
+
+    if self.map[r][c] == 1:
+      return 0
+
+    if currCount >= currBest:
+      return sys.maxint
+
+    bestUp = 1 + self._distToClosestWall(r-1, c, currCount+1, currBest)
+    if bestUp < currBest:
+      currBest = bestUp
     
+    bestDown = 1 + self._distToClosestWall(r+1, c, currCount+1, currBest)
+    if bestDown < currBest:
+      currBest = bestDown
+    
+    bestLeft = 1 + self._distToClosestWall(r, c-1, currCount+1, currBest)
+    if bestLeft < currBest:
+      currBest = bestLeft
+
+    bestRight = 1 + self._distToClosestWall(r, c+1, currCount+1, currBest)
+
+    return min(bestUp, bestDown, bestLeft, bestRight)
 
 class AStarSearch:
   def __init__(self, map):
@@ -404,6 +429,7 @@ def main():
     right_coord = right_open[random.randint(0, len(right_open)-1)]
     """ End random point selection """
 
+    
     # generate path, if possible
     path = []
     if generator.regionsAreConnected(startRegion, endRegion):
@@ -422,7 +448,8 @@ def main():
 
     # display world and heatmap of distances
     if showHeatMap:
-      dists = generator.distsToWall()
+      diff = DifficultyMetrics(map)
+      dists = diff.closestWall()
       f, ax = plt.subplots(1, 2)
       ax[0].imshow(map, cmap='Greys', interpolation='nearest')
       ax[1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
