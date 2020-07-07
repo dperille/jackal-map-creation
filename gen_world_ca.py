@@ -138,6 +138,42 @@ class MapGenerator():
 
     return False
 
+  def connectRegions(self, regionA, regionB):
+    if self.regionsAreConnected(regionA, regionB):
+      return
+
+    print("Connecting separate regions")
+    rightmostA = (-1, -1)
+    leftmostB = (-1, self.cols - 1)
+
+    for r in range(self.rows):
+      for c in range(self.cols):
+        if regionA[r][c] == 1 and c > rightmostA[1]:
+          rightmostA = (r, c)
+        if regionB[r][c] == 1 and c < leftmostB[1]:
+          leftmostB = (r, c)
+
+    lrchange = 0
+    udchange = 0
+    if rightmostA[1] < leftmostB[1]:
+      lrchange = 1
+    elif rightmostA[1] > leftmostB[1]:
+      lrchange = -1
+    if rightmostA[0] < leftmostB[0]:
+      udchange = 1
+    elif rightmostA[0] > leftmostB[0]:
+      udchange = -1
+
+    rmar = rightmostA[0]
+    rmac = rightmostA[1]
+    lmbr = leftmostB[0]
+    lmbc = leftmostB[1]
+    for count in range(1, abs(rmac-lmbc)+1):
+      self.map[rmar][rmac+count * lrchange] = 0
+
+    for count in range(1, abs(rmar-lmbr)+1):
+      self.map[rmar+count*udchange][rmac+(lmbc-rmac)] = 0
+
   def isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
@@ -429,15 +465,13 @@ def main():
     right_coord = right_open[random.randint(0, len(right_open)-1)]
     """ End random point selection """
 
+    generator.connectRegions(startRegion, endRegion)
     
     # generate path, if possible
     path = []
-    if generator.regionsAreConnected(startRegion, endRegion):
-      print("Points: (%d, 0), (%d, 12), (%d, 24)" % (left_coord, mid_coord, right_coord))
-      path = generator.getPath([(left_coord, 0), (mid_coord, 12), (right_coord, 24)])
-      print("Found path!")
-    else:
-      print("No path possible")
+    print("Points: (%d, 0), (%d, 12), (%d, 24)" % (left_coord, mid_coord, right_coord))
+    path = generator.getPath([(left_coord, 0), (mid_coord, 12), (right_coord, 24)])
+    print("Found path!")
 
     # convert path list to matrix
     map_with_path = [[map[j][i] for i in range(len(map[0]))] for j in range(len(map))]
