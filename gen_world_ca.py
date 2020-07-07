@@ -228,6 +228,46 @@ class DifficultyMetrics:
 
     return dists
 
+  def avgVisibility(self):
+    vis = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        vis[r][c] = self._avgVisCell(r, c)
+
+    return vis
+
+  def _avgVisCell(self, r, c):
+    total_vis = 0
+    num_axes = 0
+    for r_move in [-1, 0, 1]:
+      for c_move in [-1, 0, 1]:
+        if r_move == 0 and c_move == 0:
+          continue
+
+        this_vis = 0
+        r_curr = r
+        c_curr = c
+        wall_found = False
+        while not wall_found:
+          if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
+            break
+
+          if self.map[r_curr][c_curr] == 1:
+            wall_found = True
+          else:
+            this_vis += 1
+
+          r_curr += r_move
+          c_curr += c_move
+        
+        # if ran out of bounds before finding wall, don't count
+        if wall_found:
+          total_vis += this_vis
+          num_axes += 1
+    
+    return total_vis / num_axes
+
+
   def _densityOfTile(self, row, col, radius):
     count = 0
     for r in range(row-radius, row+radius+1):
@@ -263,6 +303,7 @@ class DifficultyMetrics:
     bestRight = 1 + self._distToClosestWall(r, c+1, currCount+1, currBest)
 
     return min(bestUp, bestDown, bestLeft, bestRight)
+
 
 class AStarSearch:
   def __init__(self, map):
@@ -487,13 +528,16 @@ def main():
       dists = diff.closestWall()
       d_radius = 3
       densities = diff.density(d_radius)
-      f, ax = plt.subplots(1, 3)
-      ax[0].imshow(map_with_path, cmap='Greys', interpolation='nearest')
-      ax[0].set_title("Map and A* path")
-      ax[1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
-      ax[1].set_title("Distance to \nclosest obstacle")
-      ax[2].imshow(densities, cmap='binary', interpolation='nearest')
-      ax[2].set_title("%d-square\n radius density" % d_radius)
+      avgVis = diff.avgVisibility()
+      f, ax = plt.subplots(2, 2)
+      ax[0][0].imshow(map_with_path, cmap='Greys', interpolation='nearest')
+      ax[0][0].set_title("Map and A* path")
+      ax[0][1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
+      ax[0][1].set_title("Distance to \nclosest obstacle")
+      ax[1][0].imshow(densities, cmap='binary', interpolation='nearest')
+      ax[1][0].set_title("%d-square radius density" % d_radius)
+      ax[1][1].imshow(avgVis, cmap='RdYlGn', interpolation='nearest')
+      ax[1][1].set_title("Average visibility")
       plt.show()
 
     # only show the map itself
