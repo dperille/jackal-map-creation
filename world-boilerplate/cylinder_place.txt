@@ -1,0 +1,10 @@
+      <model name='unit_cylinder_%d'>
+        <pose frame=''>%f %f %f %f %f %f</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose frame=''>%f %f %f %f %f %f</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 -9.8 0 -0 0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
+        </link>
+      </model>
