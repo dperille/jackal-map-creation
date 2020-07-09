@@ -529,6 +529,59 @@ class WorldWriter():
     self.file.close()
    
 
+class Display:
+  def __init__(self, map, map_with_path, density_radius, dispersion_radius):
+    self.map = map
+    self.map_with_path = map_with_path
+    self.density_radius = density_radius
+    self.dispersion_radius = dispersion_radius
+  
+    diff = DifficultyMetrics(map)
+    self.metrics = {
+      "closestDist": diff.closestWall(),
+      "density": diff.density(density_radius),
+      "avgVis": diff.avgVisibility(),
+      "dispersion": diff.dispersion(dispersion_radius),
+    }
+
+  def __call__(self):
+    fig, ax = plt.subplots(2, 3)
+
+    # map and path
+    ax[0][0].imshow(self.map_with_path, cmap='Greys', interpolation='nearest')
+    ax[0][0].set_title("Map and A* path")
+
+    # closest wall distance
+    dists = self.metrics.get("closestDist")
+    dist_plot = ax[0][1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
+    ax[0][1].set_title("Distance to \nclosest obstacle")
+    dist_cbar = fig.colorbar(dist_plot, ax=ax[0][1], orientation='horizontal')
+    dist_cbar.ax.tick_params(labelsize='xx-small')
+
+    # density
+    densities = self.metrics.get("density")
+    density_plot = ax[0][2].imshow(densities, cmap='binary', interpolation='nearest')
+    ax[0][2].set_title("%d-square radius density" % self.density_radius)
+    dens_cbar = fig.colorbar(density_plot, ax=ax[0][2], orientation='horizontal')
+    dens_cbar.ax.tick_params(labelsize='xx-small')
+
+    # average visibility
+    avgVis = self.metrics.get("avgVis")
+    avgVis_plot = ax[1][0].imshow(avgVis, cmap='RdYlGn', interpolation='nearest')
+    ax[1][0].set_title("Average visibility")
+    avgVis_cbar = fig.colorbar(avgVis_plot, ax=ax[1][0], orientation='horizontal')
+    avgVis_cbar.ax.tick_params(labelsize='xx-small')
+    
+    # dispersion
+    dispersion = self.metrics.get("dispersion")
+    disp_plot = ax[1][1].imshow(dispersion, cmap='RdYlGn', interpolation='nearest')
+    ax[1][1].set_title("%d-square radius dispersion" % self.dispersion_radius)
+    disp_cbar = fig.colorbar(disp_plot, ax=ax[1][1], orientation='horizontal')
+    disp_cbar.ax.tick_params(labelsize='xx-small')
+
+    fig.delaxes(ax[1][2])
+    plt.show()
+
 def main():
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
         + "/worlds/proc_world.world")
@@ -603,25 +656,8 @@ def main():
 
     # display world and heatmap of distances
     if showHeatMap:
-      diff = DifficultyMetrics(map)
-      dists = diff.closestWall()
-      density_radius = 3
-      dispersion_radius = 3
-      densities = diff.density(density_radius)
-      avgVis = diff.avgVisibility()
-      disp = diff.dispersion(dispersion_radius)
-      f, ax = plt.subplots(2, 3)
-      ax[0][0].imshow(map_with_path, cmap='Greys', interpolation='nearest')
-      ax[0][0].set_title("Map and A* path")
-      ax[0][1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
-      ax[0][1].set_title("Distance to \nclosest obstacle")
-      ax[1][0].imshow(densities, cmap='binary', interpolation='nearest')
-      ax[1][0].set_title("%d-square radius density" % density_radius)
-      ax[1][1].imshow(avgVis, cmap='RdYlGn', interpolation='nearest')
-      ax[1][1].set_title("Average visibility")
-      ax[1][2].imshow(disp, cmap='RdYlGn', interpolation='nearest')
-      ax[1][2].set_title("%d-square radius dispersion" % dispersion_radius)
-      plt.show()
+      display = Display(map, map_with_path, density_radius=3, dispersion_radius=3)
+      display()
 
     # only show the map itself
     else:
