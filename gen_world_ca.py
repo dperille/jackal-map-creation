@@ -433,6 +433,10 @@ class AStarSearch:
         if self.map[child_pos[0]][child_pos[1]] == 1:
           continue
 
+        # also not possible to move between diagonal walls
+        if move[0] != 0 and move[1] != 0 and self.map[curr_node.r+move[0]][curr_node.c] == 1 and self.map[curr_node.r][curr_node.c+move[1]] == 1:
+          continue
+
         # if neighbor is possible to reach, add to list of neighbors
         child_node = Node(curr_node, child_pos)
         children.append(child_node)
