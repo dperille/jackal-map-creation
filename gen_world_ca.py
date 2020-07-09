@@ -397,9 +397,30 @@ class AStarSearch:
       if curr_node == end_node:
         return self.returnPath(curr_node)
 
+      # limit turns to 45 degrees
+      valid_moves_dict = {
+        (0, 1): [(-1, 1), (0, 1), (1, 1)],
+        (1, 1): [(0, 1), (1, 1), (1, 0)],
+        (1, 0): [(1, 1), (1, 0), (1, -1)],
+        (1, -1): [(1, 0), (1, -1), (0, -1)],
+        (0, -1): [(1, -1), (0, -1), (-1, -1)],
+        (-1, -1): [(0, -1), (-1, -1), (-1, 0)],
+        (-1, 0): [(-1, -1), (-1, 0), (-1, 1)],
+        (-1, 1): [(-1, 0), (-1, 1), (0, 1)]
+      }
+
+      valid_moves = []
+      if curr_node == start_node:
+        # if start node, can go any direction
+        valid_moves = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
+      else:
+        # otherwise, can only go straight or 45 degree turn
+        moving_direction = (curr_node.r - curr_node.parent.r, curr_node.c - curr_node.parent.c)
+        valid_moves = valid_moves_dict.get(moving_direction)
+
       # find all valid, walkable neighbors of this node
       children = []
-      for move in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+      for move in valid_moves:
 
         # calculate neighbor position
         child_pos = (curr_node.r + move[0], curr_node.c + move[1])
