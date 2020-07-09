@@ -236,6 +236,60 @@ class DifficultyMetrics:
 
     return vis
 
+  # calculates the number of changes betweeen open & wall
+  # in its field of view (along 16 axes)
+  def dispersion(self, radius):
+    disp = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        disp[r][c] = self._cellDispersion(r, c, radius)
+
+    return disp
+
+  def _cellDispersion(self, r, c, radius):
+    if self.map[r][c] == 1:
+      return -1
+
+    axes_wall = []
+    # four cardinal, four diagonal, and one in between each (slope +- 1/2 or 2)
+    for move in [(0, 1), (1, 2), (1, 1), (2, 1), (1, 0), (2, -1), (1, -1), (1, -2), (0, -1), (-2, -1), (-1, -1), (-1, -2), (-1, 0), (-2, 1), (-1, 1), (-1, 2)]:
+      count = 0
+      wall = False
+      r_curr = r
+      c_curr = c
+      while count < radius and not wall:
+        r_curr += move[0]
+        c_curr += move[1]
+
+        if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
+          break
+
+        if self.map[r_curr][c_curr] == 1:
+          wall = True
+
+        # count the in-between axes as two steps
+        if move[0] == 2 or move[1] == 2:
+          count += 2
+        else:
+          count += 1
+      
+      if wall:
+        axes_wall.append(True)
+      else:
+        axes_wall.append(False)
+
+    # count the number of changes in this cell's field of view
+    change_count = 0
+    for i in range(len(axes_wall)-1):
+      if axes_wall[i] != axes_wall[i+1]:
+        change_count += 1
+
+    if axes_wall[0] != axes_wall[15]:
+      change_count += 1
+
+    return change_count
+
+
   def _avgVisCell(self, r, c):
     total_vis = 0
     num_axes = 0
@@ -526,18 +580,22 @@ def main():
     if showHeatMap:
       diff = DifficultyMetrics(map)
       dists = diff.closestWall()
-      d_radius = 3
-      densities = diff.density(d_radius)
+      density_radius = 3
+      dispersion_radius = 3
+      densities = diff.density(density_radius)
       avgVis = diff.avgVisibility()
-      f, ax = plt.subplots(2, 2)
+      disp = diff.dispersion(dispersion_radius)
+      f, ax = plt.subplots(2, 3)
       ax[0][0].imshow(map_with_path, cmap='Greys', interpolation='nearest')
       ax[0][0].set_title("Map and A* path")
       ax[0][1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
       ax[0][1].set_title("Distance to \nclosest obstacle")
       ax[1][0].imshow(densities, cmap='binary', interpolation='nearest')
-      ax[1][0].set_title("%d-square radius density" % d_radius)
+      ax[1][0].set_title("%d-square radius density" % density_radius)
       ax[1][1].imshow(avgVis, cmap='RdYlGn', interpolation='nearest')
       ax[1][1].set_title("Average visibility")
+      ax[1][2].imshow(disp, cmap='RdYlGn', interpolation='nearest')
+      ax[1][2].set_title("%d-square radius dispersion" % dispersion_radius)
       plt.show()
 
     # only show the map itself
