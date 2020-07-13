@@ -5,18 +5,8 @@ import Queue
 import math
 import matplotlib.pyplot as plt
 import Tkinter as tk
+from world_writer import WorldWriter
 
-# define boilerplate code needed to write to .world file
-with open("./world-boilerplate/world_boiler_start.txt") as f:
-      world_boiler_start = f.read()
-with open("./world-boilerplate/world_boiler_mid.txt") as f:
-      world_boiler_mid = f.read()
-with open("./world-boilerplate/world_boiler_end.txt") as f:
-      world_boiler_end = f.read()
-with open("./world-boilerplate/cylinder_define.txt") as f:
-      cylinder_define = f.read()
-with open("./world-boilerplate/cylinder_place.txt") as f:
-      cylinder_place = f.read()
 
 class MapGenerator():
   def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
@@ -516,49 +506,7 @@ class Node:
 
   def __eq__(self, other):
     return self.r == other.r and self.c == other.c
-
-
-class WorldWriter():
-
-  def __init__(self, filename):
-    self.file = open(filename, "w")
-    self.numCylinders = 0
-    self.cylinderList = []
-    self._writeStarterBoiler()
-
-  def _writeStarterBoiler(self):
-    self.file.write(world_boiler_start)
-
-  def createCylinder(self, x, y, z, a, b, c):
-    self.file.write(cylinder_define % (
-        self.numCylinders, x, y, z, a, b, c
-    ))
-    
-    self.cylinderList.append([x, y, z, a, b, c])
-    self.numCylinders += 1
-
-  def _writeMidBoiler(self):
-      self.file.write(world_boiler_mid)
-
-  def placeCylinders(self):
-    self._writeMidBoiler()
-
-    for i in range(self.numCylinders):
-      self.file.write(cylinder_place % (
-          i, self.cylinderList[i][0], self.cylinderList[i][1], self.cylinderList[i][2], 
-          self.cylinderList[i][3], self.cylinderList[i][4], self.cylinderList[i][5], 
-          self.cylinderList[i][0], self.cylinderList[i][1], self.cylinderList[i][2], 
-          self.cylinderList[i][3], self.cylinderList[i][4], self.cylinderList[i][5], 
-      ))
-
-    self._writeEndBoiler()
-
-  def _writeEndBoiler(self):
-    self.file.write(world_boiler_end)
-
-  def close(self):
-    self.file.close()
-   
+ 
 
 class Display:
   def __init__(self, map, map_with_path, density_radius, dispersion_radius):
@@ -728,9 +676,8 @@ class Input:
       
     self.root.destroy()
 
+
 def main():
-    writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world")
 
     # get user parameters, if provided
     inputWindow = Input()
@@ -740,15 +687,13 @@ def main():
     generator = MapGenerator(25, 25, inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
     generator()
 
-    # write obstacles to .world file
+    # get map from the generator
     map = generator.getMap()
-    for r in range(len(map)):
-      for c in range(len(map[0])):
-        if map[r][c] == 1:
-          writer.createCylinder(r-10, c, 0, 0, 0, 0)
 
-    writer.placeCylinders()
-    writer.close()
+    # write map to .world file
+    writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
+        + "/worlds/proc_world.world", map)
+    writer()
 
     """ Generate random points to demonstrate path """
     startRegion = generator.biggestLeftRegion()
