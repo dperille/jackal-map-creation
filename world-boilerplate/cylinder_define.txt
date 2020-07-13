@@ -15,7 +15,7 @@
         <collision name='collision'>
           <geometry>
             <cylinder>
-              <radius>0.5</radius>
+              <radius>%f</radius>
               <length>1</length>
             </cylinder>
           </geometry>
@@ -36,7 +36,7 @@
         <visual name='visual'>
           <geometry>
             <cylinder>
-              <radius>0.5</radius>
+              <radius>%f</radius>
               <length>1</length>
             </cylinder>
           </geometry>

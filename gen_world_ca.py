@@ -692,7 +692,7 @@ def main():
 
     # write map to .world file
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world", map)
+        + "/worlds/proc_world.world", map, cyl_radius=0.1)
     writer()
 
     """ Generate random points to demonstrate path """
