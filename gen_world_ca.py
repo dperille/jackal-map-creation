@@ -4,6 +4,7 @@ import datetime
 import Queue
 import math
 import matplotlib.pyplot as plt
+import Tkinter as tk
 
 # define boilerplate code needed to write to .world file
 with open("./world-boilerplate/world_boiler_start.txt") as f:
@@ -23,7 +24,7 @@ class MapGenerator():
     self.rows = rows
     self.cols = cols
     self.randFillPct = randFillPct
-    self.seed = hash(seed)
+    self.seed = seed
     self.smoothIter = smoothIter
 
   def __call__(self):
@@ -664,31 +665,79 @@ class Display:
     plt.axis('off')
     plt.show()
 
+
+class Input:
+  def __init__(self):
+    self.root = tk.Tk()
+    tk.Label(self.root, text="Seed").grid(row=0)
+    tk.Label(self.root, text="Smoothing iterations").grid(row=1)
+    tk.Label(self.root, text="Fill percentage (0 to 1)").grid(row=2)
+
+    self.seed = tk.Entry(self.root)
+    self.seed.grid(row=0, column=1)
+
+    self.smoothIter = tk.Entry(self.root)
+    self.smoothIter.insert(0, "4")
+    self.smoothIter.grid(row=1, column=1)
+
+    self.fillPct = tk.Entry(self.root)
+    self.fillPct.insert(0, "0.35")
+    self.fillPct.grid(row=2, column=1)
+
+    self.showMetrics = tk.IntVar()
+    self.showMetrics.set(True)
+    showMetricsBox = tk.Checkbutton(self.root, text="Show metrics", var=self.showMetrics)
+    showMetricsBox.grid(row=3, column=1)
+
+    tk.Button(self.root, text='Run', command=self.get_input).grid(row=5, column=1)
+
+    self.root.mainloop()
+  
+  def get_input(self):
+    self.inputs = {}
+
+    # get seed
+    if len(self.seed.get()) == 0:
+      self.inputs["seed"] = hash(datetime.datetime.now())
+    else:
+      try:
+        self.inputs["seed"] = int(self.seed.get())
+      except:
+        self.inputs["seed"] = hash(self.seed.get())
+
+    # get number of smoothing iterations
+    default_smooth_iter = 4
+    try:
+      self.inputs["smoothIter"] = int(self.smoothIter.get())
+    except:
+      self.inputs["smoothIter"] = default_smooth_iter
+
+    # get random fill percentage
+    default_fill_pct = 0.35
+    try:
+      self.inputs["fillPct"] = float(self.fillPct.get())
+    except:
+      self.inputs["fillPct"] = default_fill_pct
+
+    # get show metrics value
+    default_show_metrics = 1
+    try:
+      self.inputs["showMetrics"] = self.showMetrics.get()
+    except:
+      self.inputs["showMetrics"] = default_show_metrics
+      
+    self.root.destroy()
+
 def main():
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
         + "/worlds/proc_world.world")
 
     # get user parameters, if provided
-    # usage: gen_world_ca.py <seed> <smoothing_iterations> <initial_fill_pct> <show_heatmap>
-    seed = None
-    smooths = 5
-    fillPct = 0.35
-    showHeatMap = 1
-    if len(sys.argv) >= 2:
-      seed = sys.argv[1]
-    else:
-      seed = datetime.datetime.now()
-      print("Seed: %d" % (hash(seed)))
-
-    if len(sys.argv) >= 3:
-      smooths = int(sys.argv[2])
-    if len(sys.argv) >= 4:
-      fillPct = float(sys.argv[3])
-    if len(sys.argv) >= 5:
-      showHeatMap = int(sys.argv[4])
+    inputWindow = Input()
+    inputDict = inputWindow.inputs
 
     # create 25x25 world generator and run smoothing iterations
-    generator = MapGenerator(25, 25, fillPct, seed, smooths)
+    generator = MapGenerator(25, 25, inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
     generator()
 
     # write obstacles to .world file
@@ -737,7 +786,7 @@ def main():
     map_with_path[right_coord][24] = 0.65
 
     # display world and heatmap of distances
-    if showHeatMap:
+    if inputDict["showMetrics"]:
       display = Display(map, map_with_path, density_radius=3, dispersion_radius=3)
       display()
 
