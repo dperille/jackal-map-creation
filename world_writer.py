@@ -30,7 +30,7 @@ class WorldWriter():
     c_shift = 2
     for r in range(len(self.map)):
       for c in range(len(self.map[0])):
-        if self.map[r][c] == 1:
+        if self.map[r][c] == 1 and not self._allNeighborsFilled(r, c):
           self._createCylinder((r*radius_ratio)+r_shift, (c*radius_ratio)+c_shift, 0, 0, 0, 0, radius=self.cyl_radius)
 
     # write .world middle boilerplate
@@ -44,6 +44,18 @@ class WorldWriter():
 
     # close file
     self._close()
+
+  # returns true if all 8 spaces around (r, c) are filled, false otherwise
+  def _allNeighborsFilled(self, r, c):
+    for r_neigh in range(r-1, r+2):
+      for c_neigh in range(c-1, c+2):
+        if r_neigh < 0 or r_neigh >= len(self.map) or c_neigh < 0 or c_neigh >= len(self.map[0]):
+          return False
+
+        if self.map[r_neigh][c_neigh] == 0:
+          return False
+
+    return True
 
   def _writeStarterBoiler(self):
     self.file.write(world_boiler_start)
