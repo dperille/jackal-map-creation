@@ -684,6 +684,7 @@ def main():
     inputDict = inputWindow.inputs
 
     # create 25x25 world generator and run smoothing iterations
+    print("Seed: %d" % inputDict["seed"])
     generator = MapGenerator(25, 25, inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
     generator()
 
