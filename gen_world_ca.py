@@ -701,17 +701,13 @@ def main():
     endRegion = generator.biggestRightRegion()
 
     left_open = []
-    mid_open = []
     right_open = []
     for r in range(len(map)):
       if startRegion[r][0] == 1:
         left_open.append(r)
       if endRegion[r][24] == 1:
         right_open.append(r)
-      if map[r][12] == 0:
-        mid_open.append(r)
     left_coord = left_open[random.randint(0, len(left_open)-1)]
-    mid_coord = mid_open[random.randint(0, len(mid_open)-1)]
     right_coord = right_open[random.randint(0, len(right_open)-1)]
     """ End random point selection """
 
@@ -719,8 +715,8 @@ def main():
     
     # generate path, if possible
     path = []
-    print("Points: (%d, 0), (%d, 12), (%d, 24)" % (left_coord, mid_coord, right_coord))
-    path = generator.getPath([(left_coord, 0), (mid_coord, 12), (right_coord, 24)])
+    print("Points: (%d, 0), (%d, 24)" % (left_coord, right_coord))
+    path = generator.getPath([(left_coord, 0), (right_coord, 24)])
     print("Found path!")
 
     # convert path list to matrix
@@ -728,7 +724,6 @@ def main():
     for r, c in path:
       map_with_path[r][c] = 0.35
     map_with_path[left_coord][0] = 0.65
-    map_with_path[mid_coord][12] = 0.65
     map_with_path[right_coord][24] = 0.65
 
     # display world and heatmap of distances
