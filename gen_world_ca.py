@@ -716,15 +716,17 @@ def main():
     # get map from the generator
     map = generator.getMap()
 
+    # ensure connectivity
+    startRegion = generator.biggestLeftRegion()
+    endRegion = generator.biggestRightRegion()
+    generator.connectRegions(startRegion, endRegion)
+
     # write map to .world file
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
         + "/worlds/proc_world.world", map, cyl_radius=0.1)
     writer()
 
     """ Generate random points to demonstrate path """
-    startRegion = generator.biggestLeftRegion()
-    endRegion = generator.biggestRightRegion()
-
     left_open = []
     right_open = []
     for r in range(len(map)):
@@ -736,7 +738,6 @@ def main():
     right_coord = right_open[random.randint(0, len(right_open)-1)]
     """ End random point selection """
 
-    generator.connectRegions(startRegion, endRegion)
     
     # generate path, if possible
     path = []
