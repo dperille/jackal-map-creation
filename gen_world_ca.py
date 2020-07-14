@@ -616,10 +616,13 @@ class Display:
 
 class Input:
   def __init__(self):
-    self.root = tk.Tk()
+    self.root = tk.Tk(className="Parameters")
+
     tk.Label(self.root, text="Seed").grid(row=0)
     tk.Label(self.root, text="Smoothing iterations").grid(row=1)
     tk.Label(self.root, text="Fill percentage (0 to 1)").grid(row=2)
+    tk.Label(self.root, text="Rows").grid(row=3, column=0)
+    tk.Label(self.root, text="Cols").grid(row=3, column=2)
 
     self.seed = tk.Entry(self.root)
     self.seed.grid(row=0, column=1)
@@ -632,10 +635,18 @@ class Input:
     self.fillPct.insert(0, "0.35")
     self.fillPct.grid(row=2, column=1)
 
+    self.rows = tk.Entry(self.root)
+    self.rows.insert(0, "25")
+    self.rows.grid(row=3, column=1)
+
+    self.cols = tk.Entry(self.root)
+    self.cols.insert(0, "25")
+    self.cols.grid(row=3, column=3)
+
     self.showMetrics = tk.IntVar()
     self.showMetrics.set(True)
     showMetricsBox = tk.Checkbutton(self.root, text="Show metrics", var=self.showMetrics)
-    showMetricsBox.grid(row=3, column=1)
+    showMetricsBox.grid(row=4, column=1)
 
     tk.Button(self.root, text='Run', command=self.get_input).grid(row=5, column=1)
 
@@ -667,6 +678,20 @@ class Input:
     except:
       self.inputs["fillPct"] = default_fill_pct
 
+    # get number of rows
+    default_rows = 25
+    try:
+      self.inputs["rows"] = int(self.rows.get())
+    except:
+      self.inputs["rows"] = default_rows
+
+    # get number of columns
+    default_cols = 25
+    try:
+      self.inputs["cols"] = int(self.cols.get())
+    except:
+      self.inputs["rows"] = default_cols
+
     # get show metrics value
     default_show_metrics = 1
     try:
@@ -685,7 +710,7 @@ def main():
 
     # create 25x25 world generator and run smoothing iterations
     print("Seed: %d" % inputDict["seed"])
-    generator = MapGenerator(25, 25, inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
+    generator = MapGenerator(inputDict["rows"], inputDict["cols"], inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
     generator()
 
     # get map from the generator
@@ -705,7 +730,7 @@ def main():
     for r in range(len(map)):
       if startRegion[r][0] == 1:
         left_open.append(r)
-      if endRegion[r][24] == 1:
+      if endRegion[r][len(map[0])-1] == 1:
         right_open.append(r)
     left_coord = left_open[random.randint(0, len(left_open)-1)]
     right_coord = right_open[random.randint(0, len(right_open)-1)]
@@ -715,8 +740,8 @@ def main():
     
     # generate path, if possible
     path = []
-    print("Points: (%d, 0), (%d, 24)" % (left_coord, right_coord))
-    path = generator.getPath([(left_coord, 0), (right_coord, 24)])
+    print("Points: (%d, 0), (%d, %d)" % (left_coord, right_coord, inputDict["cols"]-1))
+    path = generator.getPath([(left_coord, 0), (right_coord, inputDict["cols"]-1)])
     print("Found path!")
 
     # convert path list to matrix
@@ -724,7 +749,7 @@ def main():
     for r, c in path:
       map_with_path[r][c] = 0.35
     map_with_path[left_coord][0] = 0.65
-    map_with_path[right_coord][24] = 0.65
+    map_with_path[right_coord][inputDict["cols"]-1] = 0.65
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
