@@ -158,7 +158,7 @@ class JackalMap:
     coords_cleared = []
 
     if self.regionsAreConnected(regionA, regionB):
-      return
+      return coords_cleared
 
     print("Connecting separate regions")
     rightmostA = (-1, -1)
