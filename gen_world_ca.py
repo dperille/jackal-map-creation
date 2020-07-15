@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import Tkinter as tk
 from world_writer import WorldWriter
 
+def_kernel_size = 3
 
 class ObstacleMap():
   def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
@@ -741,14 +742,14 @@ def main():
     obstacle_map = obMapGen.getMap()
     
     # generate jackal's map from the obstacle map & ensure connectivity
-    jMapGen = JackalMap(obstacle_map, kernel_size=3)
+    jMapGen = JackalMap(obstacle_map, def_kernel_size)
     startRegion = jMapGen.biggestLeftRegion()
     endRegion = jMapGen.biggestRightRegion()
     cleared_coords = jMapGen.connectRegions(startRegion, endRegion)
 
     # get the final jackal map and update the obstacle map
     jackal_map = jMapGen.getMap()
-    obstacle_map = obMapGen.updateObstacleMap(cleared_coords, kernel_size=3)
+    obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size)
 
     # write map to .world file
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
@@ -774,16 +775,25 @@ def main():
     path = jMapGen.getPath([(left_coord, 0), (right_coord, len(jackal_map[0])-1)])
     print("Found path!")
 
-    # convert path list to matrix
-    map_with_path = [[jackal_map[j][i] for i in range(len(jackal_map[0]))] for j in range(len(jackal_map))]
+    # put paths into matrixes to display them
+    obstacle_map_with_path = [[obstacle_map[j][i] for i in range(len(obstacle_map[0]))] for j in range(len(obstacle_map))]
+    jackal_map_with_path = [[jackal_map[j][i] for i in range(len(jackal_map[0]))] for j in range(len(jackal_map))]
     for r, c in path:
-      map_with_path[r][c] = 0.35
-    map_with_path[left_coord][0] = 0.65
-    map_with_path[right_coord][len(jackal_map[0])-1] = 0.65
+      # update jackal-space path display
+      jackal_map_with_path[r][c] = 0.35
+
+      # update obstacle-space path display
+      for r_kernel in range(r, r + def_kernel_size):
+        for c_kernel in range(c, c + def_kernel_size):
+          obstacle_map_with_path[r_kernel][c_kernel] = 0.35
+    jackal_map_with_path[left_coord][0] = 0.65
+    jackal_map_with_path[right_coord][len(jackal_map[0])-1] = 0.65
+    obstacle_map_with_path[left_coord][0] = 0.65
+    obstacle_map_with_path[right_coord][len(obstacle_map[0])-1] = 0.65
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
-      display = Display(obstacle_map, map_with_path, jackal_map, density_radius=3, dispersion_radius=3)
+      display = Display(obstacle_map, obstacle_map_with_path, jackal_map_with_path, density_radius=3, dispersion_radius=3)
       display()
 
     # only show the map itself
