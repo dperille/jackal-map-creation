@@ -8,7 +8,7 @@ import Tkinter as tk
 from world_writer import WorldWriter
 
 
-class MapGenerator():
+class ObstacleMap():
   def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
     self.map = [[0 for i in range(cols)] for j in range(rows)]
     self.rows = rows
@@ -51,7 +51,7 @@ class MapGenerator():
     count = 0
     for i in range(r - 1, r + 2):
       for j in range(c - 1, c + 2):
-        if self.isInMap(i, j):
+        if self._isInMap(i, j):
           if i != r or j != c:
             count += self.map[i][j]
 
@@ -61,8 +61,32 @@ class MapGenerator():
     
     return count
 
+  def _isInMap(self, r, c):
+    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+
+  # update the obstacle map given the jackal-space
+  # coordinates that were cleared to ensure connectivity
+  def updateObstacleMap(self, cleared_coords, kernel_size):
+    for coord in cleared_coords:
+      for r in range(coord[0], coord[0] + kernel_size):
+        for c in range(coord[1], coord[1] + kernel_size):
+          self.map[r][c] = 0
+
+    return self.map
+
   def getMap(self):
     return self.map
+
+class JackalMap:
+  def __init__(self, ob_map, kernel_size):
+    self.ob_map = ob_map
+    self.ob_rows = len(ob_map)
+    self.ob_cols = len(ob_map[0])
+
+    self.kernel_size = kernel_size
+    self.map = self._jackalMapFromObstacleMap(self.kernel_size)
+    self.rows = len(self.map)
+    self.cols = len(self.map[0])
 
   # use flood-fill algorithm to find the open region including (r, c)
   def _getRegion(self, r, c):
@@ -81,7 +105,7 @@ class MapGenerator():
       # check four cardinal neighbors
       for i in range(coord_r-1, coord_r+2):
         for j in range(coord_c-1, coord_c+2):
-          if self.isInMap(i, j) and (i == coord_r or j == coord_c):
+          if self._isInMap(i, j) and (i == coord_r or j == coord_c):
             # if empty space and not checked yet
             if self.map[i][j] == 0 and region[i][j] == 0:
               # add to region and put in queue
@@ -130,6 +154,8 @@ class MapGenerator():
     return False
 
   def connectRegions(self, regionA, regionB):
+    coords_cleared = []
+
     if self.regionsAreConnected(regionA, regionB):
       return
 
@@ -160,13 +186,14 @@ class MapGenerator():
     lmbr = leftmostB[0]
     lmbc = leftmostB[1]
     for count in range(1, abs(rmac-lmbc)+1):
+      coords_cleared.append((rmar, rmac + count * lrchange))
       self.map[rmar][rmac+count * lrchange] = 0
 
     for count in range(1, abs(rmar-lmbr)+1):
+      coords_cleared.append((rmar + count * udchange, rmac + (lmbc - rmac)))
       self.map[rmar+count*udchange][rmac+(lmbc-rmac)] = 0
 
-  def isInMap(self, r, c):
-    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+    return coords_cleared
 
   # returns a path between all points in the list points using A*
   def getPath(self, points):
@@ -194,31 +221,30 @@ class MapGenerator():
 
     return overall_path
 
-  def getJackalMap(self, kernel_size):
-    output_size = (self.rows - kernel_size + 1, self.cols - kernel_size + 1)
+  def _jackalMapFromObstacleMap(self, kernel_size):
+    output_size = (self.ob_rows - kernel_size + 1, self.ob_cols - kernel_size + 1)
     jackal_map = [[0 for i in range(output_size[1])] for j in range(output_size[0])]
-    jackal_map_highres = [[1 for i in range(self.cols)] for j in range(self.rows)]
-
-    for r in range(0, self.rows - kernel_size + 1):
-      for c in range(0, self.cols - kernel_size + 1):
+    
+    for r in range(0, self.ob_rows - kernel_size + 1):
+      for c in range(0, self.ob_cols - kernel_size + 1):
         if not self._kernelWindowIsOpen(kernel_size, r, c):
           jackal_map[r][c] = 1
 
-        else:
-          for r_kernel in range(r, r + kernel_size):
-            for c_kernel in range(c, c + kernel_size):
-              jackal_map_highres[r_kernel][c_kernel] = 0
-
-    return jackal_map, jackal_map_highres
+    return jackal_map
 
   def _kernelWindowIsOpen(self, kernel_size, r, c):
     for r_kernel in range(r, r + kernel_size):
       for c_kernel in range(c, c + kernel_size):
-        if self.map[r_kernel][c_kernel] == 1:
+        if self.ob_map[r_kernel][c_kernel] == 1:
           return False
 
     return True
 
+  def _isInMap(self, r, c):
+    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+
+  def getMap(self):
+    return self.map
 
 class DifficultyMetrics:
   def __init__(self, map):
@@ -535,11 +561,10 @@ class Node:
  
 
 class Display:
-  def __init__(self, map, map_with_path, jackal_map, jmap_highres, density_radius, dispersion_radius):
+  def __init__(self, map, map_with_path, jackal_map, density_radius, dispersion_radius):
     self.map = map
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
-    self.jmap_highres = jmap_highres
     self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
@@ -607,12 +632,6 @@ class Display:
     jmap_plot.axes.get_xaxis().set_visible(False)
     jmap_plot.axes.get_yaxis().set_visible(False)
     ax[2][0].set_title("Jackal navigable map")
-
-    # jackal's navigable map, high-res
-    jmap_hrplot = ax[2][1].imshow(self.jmap_highres, cmap='Greys', interpolation='nearest')
-    jmap_hrplot.axes.get_xaxis().set_visible(False)
-    jmap_hrplot.axes.get_yaxis().set_visible(False)
-    ax[2][1].set_title("High-res navigable map")
 
     plt.delaxes(ax[1][2])
     plt.axis('off')
@@ -715,32 +734,34 @@ def main():
 
     # create 25x25 world generator and run smoothing iterations
     print("Seed: %d" % inputDict["seed"])
-    generator = MapGenerator(inputDict["rows"], inputDict["cols"], inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
-    generator()
+    obMapGen = ObstacleMap(inputDict["rows"], inputDict["cols"], inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
+    obMapGen()
 
-    # get map from the generator
-    map = generator.getMap()
+    # get map from the obstacle map generator
+    obstacle_map = obMapGen.getMap()
+    
+    # generate jackal's map from the obstacle map & ensure connectivity
+    jMapGen = JackalMap(obstacle_map, kernel_size=3)
+    startRegion = jMapGen.biggestLeftRegion()
+    endRegion = jMapGen.biggestRightRegion()
+    cleared_coords = jMapGen.connectRegions(startRegion, endRegion)
 
-    # get jackal's navigable map
-    jackal_map, jackal_map_highres = generator.getJackalMap(kernel_size=3)
-
-    # ensure connectivity
-    startRegion = generator.biggestLeftRegion()
-    endRegion = generator.biggestRightRegion()
-    generator.connectRegions(startRegion, endRegion)
+    # get the final jackal map and update the obstacle map
+    jackal_map = jMapGen.getMap()
+    obstacle_map = obMapGen.updateObstacleMap(cleared_coords, kernel_size=3)
 
     # write map to .world file
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world", map, cyl_radius=0.1)
+        + "/worlds/proc_world.world", obstacle_map, cyl_radius=0.1)
     writer()
 
     """ Generate random points to demonstrate path """
     left_open = []
     right_open = []
-    for r in range(len(map)):
+    for r in range(len(jackal_map)):
       if startRegion[r][0] == 1:
         left_open.append(r)
-      if endRegion[r][len(map[0])-1] == 1:
+      if endRegion[r][len(jackal_map[0])-1] == 1:
         right_open.append(r)
     left_coord = left_open[random.randint(0, len(left_open)-1)]
     right_coord = right_open[random.randint(0, len(right_open)-1)]
@@ -749,20 +770,20 @@ def main():
     
     # generate path, if possible
     path = []
-    print("Points: (%d, 0), (%d, %d)" % (left_coord, right_coord, inputDict["cols"]-1))
-    path = generator.getPath([(left_coord, 0), (right_coord, inputDict["cols"]-1)])
+    print("Points: (%d, 0), (%d, %d)" % (left_coord, right_coord, len(jackal_map[0])-1))
+    path = jMapGen.getPath([(left_coord, 0), (right_coord, len(jackal_map[0])-1)])
     print("Found path!")
 
     # convert path list to matrix
-    map_with_path = [[map[j][i] for i in range(len(map[0]))] for j in range(len(map))]
+    map_with_path = [[jackal_map[j][i] for i in range(len(jackal_map[0]))] for j in range(len(jackal_map))]
     for r, c in path:
       map_with_path[r][c] = 0.35
     map_with_path[left_coord][0] = 0.65
-    map_with_path[right_coord][inputDict["cols"]-1] = 0.65
+    map_with_path[right_coord][len(jackal_map[0])-1] = 0.65
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
-      display = Display(map, map_with_path, jackal_map, jackal_map_highres, density_radius=3, dispersion_radius=3)
+      display = Display(obstacle_map, map_with_path, jackal_map, density_radius=3, dispersion_radius=3)
       display()
 
     # only show the map itself
