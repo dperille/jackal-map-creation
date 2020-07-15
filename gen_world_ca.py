@@ -197,13 +197,19 @@ class MapGenerator():
   def getJackalMap(self, kernel_size):
     output_size = (self.rows - kernel_size + 1, self.cols - kernel_size + 1)
     jackal_map = [[0 for i in range(output_size[1])] for j in range(output_size[0])]
+    jackal_map_highres = [[1 for i in range(self.cols)] for j in range(self.rows)]
 
     for r in range(0, self.rows - kernel_size + 1):
       for c in range(0, self.cols - kernel_size + 1):
         if not self._kernelWindowIsOpen(kernel_size, r, c):
           jackal_map[r][c] = 1
 
-    return jackal_map
+        else:
+          for r_kernel in range(r, r + kernel_size):
+            for c_kernel in range(c, c + kernel_size):
+              jackal_map_highres[r_kernel][c_kernel] = 0
+
+    return jackal_map, jackal_map_highres
 
   def _kernelWindowIsOpen(self, kernel_size, r, c):
     for r_kernel in range(r, r + kernel_size):
@@ -529,10 +535,11 @@ class Node:
  
 
 class Display:
-  def __init__(self, map, map_with_path, jackal_map, density_radius, dispersion_radius):
+  def __init__(self, map, map_with_path, jackal_map, jmap_highres, density_radius, dispersion_radius):
     self.map = map
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
+    self.jmap_highres = jmap_highres
     self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
@@ -549,7 +556,7 @@ class Display:
     }
 
   def __call__(self):
-    fig, ax = plt.subplots(2, 3)
+    fig, ax = plt.subplots(3, 3)
     
     
 
@@ -595,13 +602,19 @@ class Display:
     disp_cbar = fig.colorbar(disp_plot, ax=ax[1][1], orientation='horizontal')
     disp_cbar.ax.tick_params(labelsize='xx-small')
 
-    # jackal's navigable map
-    jmap_plot = ax[1][2].imshow(self.jackal_map, cmap='Greys', interpolation='nearest')
+    # jackal's navigable map, low-res
+    jmap_plot = ax[2][0].imshow(self.jackal_map, cmap='Greys', interpolation='nearest')
     jmap_plot.axes.get_xaxis().set_visible(False)
     jmap_plot.axes.get_yaxis().set_visible(False)
-    ax[1][2].set_title("Jackal navigable map")
+    ax[2][0].set_title("Jackal navigable map")
 
-    
+    # jackal's navigable map, high-res
+    jmap_hrplot = ax[2][1].imshow(self.jmap_highres, cmap='Greys', interpolation='nearest')
+    jmap_hrplot.axes.get_xaxis().set_visible(False)
+    jmap_hrplot.axes.get_yaxis().set_visible(False)
+    ax[2][1].set_title("High-res navigable map")
+
+    plt.delaxes(ax[1][2])
     plt.axis('off')
     plt.show()
 
@@ -709,7 +722,7 @@ def main():
     map = generator.getMap()
 
     # get jackal's navigable map
-    jackal_map = generator.getJackalMap(kernel_size=3)
+    jackal_map, jackal_map_highres = generator.getJackalMap(kernel_size=3)
 
     # ensure connectivity
     startRegion = generator.biggestLeftRegion()
@@ -749,7 +762,7 @@ def main():
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
-      display = Display(map, map_with_path, jackal_map, density_radius=3, dispersion_radius=3)
+      display = Display(map, map_with_path, jackal_map, jackal_map_highres, density_radius=3, dispersion_radius=3)
       display()
 
     # only show the map itself
