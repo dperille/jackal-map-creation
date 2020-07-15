@@ -529,9 +529,10 @@ class Node:
  
 
 class Display:
-  def __init__(self, map, map_with_path, density_radius, dispersion_radius):
+  def __init__(self, map, map_with_path, jackal_map, density_radius, dispersion_radius):
     self.map = map
     self.map_with_path = map_with_path
+    self.jackal_map = jackal_map
     self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
@@ -593,6 +594,12 @@ class Display:
     ax[1][1].set_title("%d-square radius dispersion" % self.dispersion_radius)
     disp_cbar = fig.colorbar(disp_plot, ax=ax[1][1], orientation='horizontal')
     disp_cbar.ax.tick_params(labelsize='xx-small')
+
+    # jackal's navigable map
+    jmap_plot = ax[1][2].imshow(self.jackal_map, cmap='Greys', interpolation='nearest')
+    jmap_plot.axes.get_xaxis().set_visible(False)
+    jmap_plot.axes.get_yaxis().set_visible(False)
+    ax[1][2].set_title("Jackal navigable map")
 
     
     plt.axis('off')
@@ -701,6 +708,9 @@ def main():
     # get map from the generator
     map = generator.getMap()
 
+    # get jackal's navigable map
+    jackal_map = generator.getJackalMap(kernel_size=3)
+
     # ensure connectivity
     startRegion = generator.biggestLeftRegion()
     endRegion = generator.biggestRightRegion()
@@ -739,7 +749,7 @@ def main():
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
-      display = Display(map, map_with_path, density_radius=3, dispersion_radius=3)
+      display = Display(map, map_with_path, jackal_map, density_radius=3, dispersion_radius=3)
       display()
 
     # only show the map itself
