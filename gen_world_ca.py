@@ -574,41 +574,6 @@ class Display:
     disp_cbar = fig.colorbar(disp_plot, ax=ax[1][1], orientation='horizontal')
     disp_cbar.ax.tick_params(labelsize='xx-small')
 
-    # left-right width
-    leftright_width = self.metrics.get("leftright_width")
-    lr_plot = ax[1][2].imshow(leftright_width, cmap='RdYlGn', interpolation='nearest')
-    lr_plot.axes.get_xaxis().set_visible(False)
-    lr_plot.axes.get_yaxis().set_visible(False)
-    ax[1][2].set_title("Left-right width")
-    lr_cbar = fig.colorbar(lr_plot, ax=ax[1][2], orientation='horizontal')
-    lr_cbar.ax.tick_params(labelsize='xx-small')
-
-    # up-down width
-    updown_width = self.metrics.get("updown_width")
-    ud_plot = ax[2][0].imshow(updown_width, cmap='RdYlGn', interpolation='nearest')
-    ud_plot.axes.get_xaxis().set_visible(False)
-    ud_plot.axes.get_yaxis().set_visible(False)
-    ax[2][0].set_title("Up-down width")
-    ud_cbar = fig.colorbar(ud_plot, ax=ax[2][0], orientation='horizontal')
-    ud_cbar.ax.tick_params(labelsize='xx-small')
-
-    # positive diagonal width
-    posd_width = self.metrics.get("pos_diag_width")
-    posd_plot = ax[2][1].imshow(posd_width, cmap='RdYlGn', interpolation='nearest')
-    posd_plot.axes.get_xaxis().set_visible(False)
-    posd_plot.axes.get_yaxis().set_visible(False)
-    ax[2][1].set_title("+ slope diagonal width")
-    pd_cbar = fig.colorbar(posd_plot, ax=ax[2][1], orientation='horizontal')
-    pd_cbar.ax.tick_params(labelsize='xx-small')
-
-    # negative diagonal width
-    negd_width = self.metrics.get("neg_diag_width")
-    negd_plot = ax[2][2].imshow(negd_width, cmap='RdYlGn', interpolation='nearest')
-    negd_plot.axes.get_xaxis().set_visible(False)
-    negd_plot.axes.get_yaxis().set_visible(False)
-    ax[2][2].set_title("- slope diagonal width")
-    nd_cbar = fig.colorbar(negd_plot, ax=ax[2][2], orientation='horizontal')
-    nd_cbar.ax.tick_params(labelsize='xx-small')
     
     plt.axis('off')
     plt.show()
