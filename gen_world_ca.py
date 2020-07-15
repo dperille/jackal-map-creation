@@ -194,6 +194,26 @@ class MapGenerator():
 
     return overall_path
 
+  def getJackalMap(self, kernel_size):
+    output_size = (self.rows - kernel_size + 1, self.cols - kernel_size + 1)
+    jackal_map = [[0 for i in range(output_size[1])] for j in range(output_size[0])]
+
+    for r in range(0, self.rows - kernel_size + 1):
+      for c in range(0, self.cols - kernel_size + 1):
+        if not self._kernelWindowIsOpen(kernel_size, r, c):
+          jackal_map[r][c] = 1
+
+    return jackal_map
+
+  def _kernelWindowIsOpen(self, kernel_size, r, c):
+    for r_kernel in range(r, r + kernel_size):
+      for c_kernel in range(c, c + kernel_size):
+        if self.map[r_kernel][c_kernel] == 1:
+          return False
+
+    return True
+
+
 class DifficultyMetrics:
   def __init__(self, map):
     self.map = map
@@ -528,7 +548,7 @@ class Display:
     }
 
   def __call__(self):
-    fig, ax = plt.subplots(3, 3)
+    fig, ax = plt.subplots(2, 3)
     
     
 
