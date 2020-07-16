@@ -753,7 +753,7 @@ def main():
 
     # write map to .world file
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world", obstacle_map, cyl_radius=0.1)
+        + "/worlds/proc_world.world", obstacle_map, cyl_radius=0.075)
     writer()
 
     """ Generate random points to demonstrate path """
@@ -798,7 +798,7 @@ def main():
 
     # only show the map itself
     else:
-      plt.imshow(map, cmap='Greys', interpolation='nearest')
+      plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
 
 if __name__ == "__main__":
