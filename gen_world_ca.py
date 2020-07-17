@@ -562,14 +562,15 @@ class Node:
  
 
 class Display:
-  def __init__(self, map, map_with_path, jackal_map, density_radius, dispersion_radius):
+  def __init__(self, map, map_with_path, jackal_map, jackal_map_with_path, density_radius, dispersion_radius):
     self.map = map
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
+    self.jackal_map_with_path = jackal_map_with_path
     self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
-    diff = DifficultyMetrics(map)
+    diff = DifficultyMetrics(jackal_map)
     self.metrics = {
       "closestDist": diff.closestWall(),
       "density": diff.density(density_radius),
@@ -629,7 +630,7 @@ class Display:
     disp_cbar.ax.tick_params(labelsize='xx-small')
 
     # jackal's navigable map, low-res
-    jmap_plot = ax[2][0].imshow(self.jackal_map, cmap='Greys', interpolation='nearest')
+    jmap_plot = ax[2][0].imshow(self.jackal_map_with_path, cmap='Greys', interpolation='nearest')
     jmap_plot.axes.get_xaxis().set_visible(False)
     jmap_plot.axes.get_yaxis().set_visible(False)
     ax[2][0].set_title("Jackal navigable map")
@@ -793,7 +794,7 @@ def main():
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
-      display = Display(obstacle_map, obstacle_map_with_path, jackal_map_with_path, density_radius=3, dispersion_radius=3)
+      display = Display(obstacle_map, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
       display()
 
     # only show the map itself
