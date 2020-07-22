@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import Tkinter as tk
 from world_writer import WorldWriter
 
-def_kernel_size = 3
+def_kernel_size = 4
 
 class ObstacleMap():
   def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
@@ -127,6 +127,14 @@ class JackalMap:
         maxSize = size
         maxRegion = region
 
+    # no region available, just generate random open spot
+    if maxSize == 0:
+      randomRow = random.randint(1, self.rows - 1)
+      self.map[randomRow][0] = 0
+
+      maxRegion = [[0 for i in range(self.cols)] for j in range(self.rows)]
+      maxRegion[randomRow][0] = 1
+
     return maxRegion
 
   # returns the largest contiguous region with a tile in the rightmost column
@@ -139,6 +147,14 @@ class JackalMap:
       if size > maxSize:
         maxSize = size
         maxRegion = region
+
+    # no region available, just generate random open spot
+    if maxSize == 0:
+      randomRow = random.randint(1, self.rows - 1)
+      self.map[randomRow][self.cols - 1] = 0
+
+      maxRegion = [[0 for i in range(self.cols)] for j in range(self.rows)]
+      maxRegion[randomRow][self.cols - 1] = 1
 
     return maxRegion
 
@@ -265,6 +281,8 @@ class DifficultyMetrics:
     return dens
 
   def closestWall(self):
+    plt.imshow(self.map, cmap='binary', interpolation='nearest')
+    plt.show()
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
@@ -746,6 +764,8 @@ def main():
     jMapGen = JackalMap(obstacle_map, def_kernel_size)
     startRegion = jMapGen.biggestLeftRegion()
     endRegion = jMapGen.biggestRightRegion()
+    
+
     cleared_coords = jMapGen.connectRegions(startRegion, endRegion)
 
     # get the final jackal map and update the obstacle map
