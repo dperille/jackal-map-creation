@@ -33,6 +33,20 @@ class WorldWriter():
         if self.map[r][c] == 1 and not self._allNeighborsFilled(r, c):
           self._createCylinder((r*radius_ratio)+r_shift, (c*radius_ratio)+c_shift, 0, 0, 0, 0, radius=self.cyl_radius)
 
+    # add a wall around the robot to force it to actually go through the obstacles
+    contain_wall_length = 5
+    c_coord = c_shift - contain_wall_length
+    while c_coord + self.cyl_radius < c_shift:
+      self._createCylinder(r_shift, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
+      self._createCylinder(r_shift + (len(self.map) - 1) * radius_ratio, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
+      c_coord += self.cyl_radius * 2
+
+    r_coord = r_shift + self.cyl_radius * 2
+    while r_coord < (len(self.map) - 2) * radius_ratio + r_shift:
+      self._createCylinder(r_coord, c_shift - contain_wall_length, 0, 0, 0, 0, radius=self.cyl_radius)
+      r_coord += self.cyl_radius * 2
+
+
     # write .world middle boilerplate
     self._writeMidBoiler()
 
