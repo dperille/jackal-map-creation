@@ -19,6 +19,8 @@ class WorldWriter():
     self.numCylinders = 0
     self.cylinderList = []
     self.cyl_radius = cyl_radius
+    self.r_shift = -len(self.map) * self.cyl_radius
+    self.c_shift = 2
 
   def __call__(self):
     # write .world boilerplate at start
@@ -26,24 +28,24 @@ class WorldWriter():
 
     # define all the cylinders we're using in .world
     radius_ratio = self.cyl_radius / 0.5
-    r_shift = -len(self.map) * self.cyl_radius
-    c_shift = 2
+    self.r_shift = -len(self.map) * self.cyl_radius
+    self.c_shift = 2
     for r in range(len(self.map)):
       for c in range(len(self.map[0])):
         if self.map[r][c] == 1 and not self._allNeighborsFilled(r, c):
-          self._createCylinder((r*radius_ratio)+r_shift, (c*radius_ratio)+c_shift, 0, 0, 0, 0, radius=self.cyl_radius)
+          self._createCylinder((r*radius_ratio)+self.r_shift, (c*radius_ratio)+self.c_shift, 0, 0, 0, 0, radius=self.cyl_radius)
 
     # add a wall around the robot to force it to actually go through the obstacles
     contain_wall_length = 5
-    c_coord = c_shift - contain_wall_length
-    while c_coord + self.cyl_radius < c_shift:
-      self._createCylinder(r_shift, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
-      self._createCylinder(r_shift + (len(self.map) - 1) * radius_ratio, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
+    c_coord = self.c_shift - contain_wall_length
+    while c_coord + self.cyl_radius < self.c_shift:
+      self._createCylinder(self.r_shift, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
+      self._createCylinder(self.r_shift + (len(self.map) - 1) * radius_ratio, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
       c_coord += self.cyl_radius * 2
 
-    r_coord = r_shift + self.cyl_radius * 2
-    while r_coord < (len(self.map) - 2) * radius_ratio + r_shift:
-      self._createCylinder(r_coord, c_shift - contain_wall_length, 0, 0, 0, 0, radius=self.cyl_radius)
+    r_coord = self.r_shift + self.cyl_radius * 2
+    while r_coord < (len(self.map) - 2) * radius_ratio + self.r_shift:
+      self._createCylinder(r_coord, self.c_shift - contain_wall_length, 0, 0, 0, 0, radius=self.cyl_radius)
       r_coord += self.cyl_radius * 2
 
 
@@ -99,4 +101,7 @@ class WorldWriter():
 
   def _close(self):
     self.file.close()
+
+  def getShifts(self):
+    return self.r_shift, self.c_shift
    

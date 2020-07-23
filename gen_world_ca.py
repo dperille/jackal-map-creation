@@ -281,8 +281,6 @@ class DifficultyMetrics:
     return dens
 
   def closestWall(self):
-    plt.imshow(self.map, cmap='binary', interpolation='nearest')
-    plt.show()
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
@@ -424,31 +422,15 @@ class DifficultyMetrics:
     return count   
 
   # determines how far a given cell is from a wall (non-diagonal)
-  def _distToClosestWall(self, r, c, currCount, currBest):
-    if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
-      return sys.maxint
-
+  """def _distToClosestWall(self, r, c):
     if self.map[r][c] == 1:
       return 0
 
-    if currCount >= currBest:
-      return sys.maxint
+    wallFound = False
+    queue = Queue.Queue(maxsize=0)
+    queue.put((r, c))
 
-    bestUp = 1 + self._distToClosestWall(r-1, c, currCount+1, currBest)
-    if bestUp < currBest:
-      currBest = bestUp
-    
-    bestDown = 1 + self._distToClosestWall(r+1, c, currCount+1, currBest)
-    if bestDown < currBest:
-      currBest = bestDown
-    
-    bestLeft = 1 + self._distToClosestWall(r, c-1, currCount+1, currBest)
-    if bestLeft < currBest:
-      currBest = bestLeft
-
-    bestRight = 1 + self._distToClosestWall(r, c+1, currCount+1, currBest)
-
-    return min(bestUp, bestDown, bestLeft, bestRight)
+    while not wallFound:"""
 
 
 class AStarSearch:
@@ -773,9 +755,11 @@ def main():
     obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size)
 
     # write map to .world file
+    cyl_radius = 0.075
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world", obstacle_map, cyl_radius=0.075)
+        + "/worlds/proc_world.world", obstacle_map, cyl_radius=cyl_radius)
     writer()
+    r_shift, c_shift = writer.getShifts()
 
     """ Generate random points to demonstrate path """
     left_open = []
@@ -785,16 +769,23 @@ def main():
         left_open.append(r)
       if endRegion[r][len(jackal_map[0])-1] == 1:
         right_open.append(r)
-    left_coord = left_open[random.randint(0, len(left_open)-1)]
-    right_coord = right_open[random.randint(0, len(right_open)-1)]
+    left_coord_r = left_open[random.randint(0, len(left_open)-1)]
+    right_coord_r = right_open[random.randint(0, len(right_open)-1)]
     """ End random point selection """
 
     
     # generate path, if possible
     path = []
-    print("Points: (%d, 0), (%d, %d)" % (left_coord, right_coord, len(jackal_map[0])-1))
-    path = jMapGen.getPath([(left_coord, 0), (right_coord, len(jackal_map[0])-1)])
+    print("Points: (%d, 0), (%d, %d)" % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
+    path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)])
     print("Found path!")
+
+    # print start and end points in gazebo coords
+    start_r = r_shift + left_coord_r * cyl_radius * 2
+    start_c = c_shift
+    end_r = r_shift + right_coord_r * cyl_radius * 2
+    end_c = (len(jackal_map[0]) - 1) * cyl_radius * 2 + c_shift
+    print("Start: (%f, %f) to Goal: (%f, %f)" % (start_r, start_c, end_r, end_c))
 
     # put paths into matrixes to display them
     obstacle_map_with_path = [[obstacle_map[j][i] for i in range(len(obstacle_map[0]))] for j in range(len(obstacle_map))]
@@ -807,10 +798,10 @@ def main():
       for r_kernel in range(r, r + def_kernel_size):
         for c_kernel in range(c, c + def_kernel_size):
           obstacle_map_with_path[r_kernel][c_kernel] = 0.35
-    jackal_map_with_path[left_coord][0] = 0.65
-    jackal_map_with_path[right_coord][len(jackal_map[0])-1] = 0.65
-    obstacle_map_with_path[left_coord][0] = 0.65
-    obstacle_map_with_path[right_coord][len(obstacle_map[0])-1] = 0.65
+    jackal_map_with_path[left_coord_r][0] = 0.65
+    jackal_map_with_path[right_coord_r][len(jackal_map[0])-1] = 0.65
+    obstacle_map_with_path[left_coord_r][0] = 0.65
+    obstacle_map_with_path[right_coord_r][len(obstacle_map[0])-1] = 0.65
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
