@@ -287,7 +287,7 @@ class DifficultyMetrics:
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        dists[r][c] = self._distToClosestWall(r, c, 0, sys.maxint)
+        dists[r][c] = self._nearest_obs(r, c)
 
     return dists
 
@@ -451,6 +451,36 @@ class DifficultyMetrics:
 
     return min(bestUp, bestDown, bestLeft, bestRight)
 
+  def _isInMap(self, r, c):
+    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+
+  # doesn't check diagonals
+  def _nearest_obs(self, r, c):
+    q = Queue(0)
+    # enqueue the four directions
+    q.put(self.Wrapper(1, r - 1, c, -1, 0))
+    q.put(self.Wrapper(1, r + 1, c, 1, 0))
+    q.put(self.Wrapper(1, r, c - 1, 0, -1))
+    q.put(self.Wrapper(1, r, c + 1, 0, 1))
+
+    while not q.empty():
+      point = q.get()
+      if self._isInMap(point.r, point.c):
+        if self.map[point.r][point.c] == 1:
+          return point.dist
+        else:
+          q.put(self.Wrapper(point.dist + 1, point.r + point.r_change, point.c + point.c_change, point.r_change, point.c_change))
+    return self.rows
+
+  # wrapper class for coordinates
+  class Wrapper:
+
+    def __init__(self, distance, row, col, row_change, col_change):
+      self.dist = distance
+      self.r = row
+      self.c = col
+      self.r_change = row_change
+      self.c_change = col_change
 
 class AStarSearch:
   def __init__(self, map):
@@ -828,7 +858,7 @@ def main(iteration=0):
     np_arr = np.asarray(obstacle_map_with_path)
     np.save(grid_file, np_arr)
 
-    
+    """
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
@@ -838,7 +868,7 @@ def main(iteration=0):
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
-    
+    """    
 
 if __name__ == "__main__":
     main()
