@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 import Tkinter as tk
 from world_writer import WorldWriter
+import numpy as np
 
 def_kernel_size = 3
 
@@ -728,11 +729,24 @@ class Input:
     self.root.destroy()
 
 
-def main():
+def main(iteration=0):
+
+    # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
+
+    world_file = "world_" + str(iteration) + ".world"
+    grid_file = "grid_" + str(iteration) + ".npy"
+    path_file = "path_" + str(iteration) + ".npy"
 
     # get user parameters, if provided
-    inputWindow = Input()
-    inputDict = inputWindow.inputs
+    # inputWindow = Input()
+    # inputDict = inputWindow.inputs
+
+    inputDict = { "seed" : hash(datetime.datetime.now()),
+                  "smoothIter": 4,
+                  "fillPct" : 0.35,
+                  "rows" : 25,
+                  "cols" : 25,
+                  "showMetrics" : 0 }
 
     # create 25x25 world generator and run smoothing iterations
     print("Seed: %d" % inputDict["seed"])
@@ -753,8 +767,7 @@ def main():
     obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size)
 
     # write map to .world file
-    writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world", obstacle_map, cyl_radius=0.075)
+    writer = WorldWriter(world_file, obstacle_map, cyl_radius=0.075)
     writer()
 
     """ Generate random points to demonstrate path """
@@ -776,7 +789,7 @@ def main():
     path = jMapGen.getPath([(left_coord, 0), (right_coord, len(jackal_map[0])-1)])
     print("Found path!")
 
-    # put paths into matrixes to display them
+    # put paths into matrices to display them
     obstacle_map_with_path = [[obstacle_map[j][i] for i in range(len(obstacle_map[0]))] for j in range(len(obstacle_map))]
     jackal_map_with_path = [[jackal_map[j][i] for i in range(len(jackal_map[0]))] for j in range(len(jackal_map))]
     for r, c in path:
@@ -792,6 +805,10 @@ def main():
     obstacle_map_with_path[left_coord][0] = 0.65
     obstacle_map_with_path[right_coord][len(obstacle_map[0])-1] = 0.65
 
+    np_arr = np.asarray(obstacle_map_with_path)
+    np.save(grid_file, np_arr)
+
+    
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
@@ -801,6 +818,7 @@ def main():
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
+    
 
 if __name__ == "__main__":
     main()
