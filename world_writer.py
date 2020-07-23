@@ -44,7 +44,7 @@ class WorldWriter():
       c_coord += self.cyl_radius * 2
 
     r_coord = self.r_shift + self.cyl_radius * 2
-    while r_coord < -self.r_shift - self.cyl_radius * 4:
+    while r_coord < -self.r_shift - self.cyl_radius * 6:
       self._createCylinder(r_coord, self.c_shift - contain_wall_length, 0, 0, 0, 0, radius=self.cyl_radius)
       r_coord += self.cyl_radius * 2
 
