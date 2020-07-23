@@ -456,7 +456,7 @@ class DifficultyMetrics:
 
   # doesn't check diagonals
   def _nearest_obs(self, r, c):
-    q = Queue(0)
+    q = Queue.Queue(0)
     # enqueue the four directions
     q.put(self.Wrapper(1, r - 1, c, -1, 0))
     q.put(self.Wrapper(1, r + 1, c, 1, 0))
@@ -783,7 +783,7 @@ def main(iteration=0):
 
     world_file = "world_" + str(iteration) + ".world"
     grid_file = "grid_" + str(iteration) + ".npy"
-    path_file = "path_" + str(iteration) + ".npy"
+    diff_file = "difficulty_" + str(iteration) + ".npy"
 
     # get user parameters, if provided
     # inputWindow = Input()
@@ -857,6 +857,10 @@ def main(iteration=0):
 
     np_arr = np.asarray(obstacle_map_with_path)
     np.save(grid_file, np_arr)
+
+    diff = DifficultyMetrics(jackal_map)
+    metrics_arr = np.asarray([diff.closestWall(), diff.density(3), diff.avgVisibility(), diff.dispersion(3)])
+    np.save(diff_file, metrics_arr)
 
     """
     # display world and heatmap of distances
