@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import Tkinter as tk
 from world_writer import WorldWriter
 import numpy as np
+from difficulty_quant import DifficultyMetrics
+
 
 def_kernel_size = 4
 
@@ -185,9 +187,9 @@ class JackalMap:
 
     for r in range(self.rows):
       for c in range(self.cols):
-        if regionA[r][c] == 1 and c > rightmostA[1]:
+        if regionA[r][c] == 1 and c >= rightmostA[1]:
           rightmostA = (r, c)
-        if regionB[r][c] == 1 and c < leftmostB[1]:
+        if regionB[r][c] == 1 and c <= leftmostB[1]:
           leftmostB = (r, c)
 
     lrchange = 0
@@ -266,205 +268,6 @@ class JackalMap:
   def getMap(self):
     return self.map
 
-class DifficultyMetrics:
-  def __init__(self, map):
-    self.map = map
-    self.rows = len(map)
-    self.cols = len(map[0])
-
-  def density(self, radius):
-    dens = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        if self.map[r][c] == 0:
-          dens[r][c] = self._densityOfTile(r, c, radius)
-        else:
-          dens[r][c] = (radius * 2) ** 2
-
-    return dens
-
-  def closestWall(self):
-    dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        dists[r][c] = self._nearest_obs(r, c)
-
-    return dists
-
-  def avgVisibility(self):
-    vis = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        vis[r][c] = self._avgVisCell(r, c)
-
-    return vis
-
-  # calculates the number of changes betweeen open & wall
-  # in its field of view (along 16 axes)
-  def dispersion(self, radius):
-    disp = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        disp[r][c] = self._cellDispersion(r, c, radius)
-
-    return disp
-
-  def axis_width(self, axis):
-    width = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        width[r][c] = self._distance(r, c, axis)
-
-    return width
-
-  def _distance(self, r, c, axis):
-    if self.map[r][c] == 1:
-      return -1
-    
-    reverse_axis = (axis[0] * -1, axis[1] * -1)
-    dist = 0
-    for move in [axis, reverse_axis]:
-      r_curr = r
-      c_curr = c
-      while self.map[r_curr][c_curr] != 1:
-        r_curr += move[0]
-        c_curr += move[1]
-
-        if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
-          break
-
-        if self.map[r_curr][c_curr] != 1:
-          dist += 1
-
-    return dist
-
-
-  def _cellDispersion(self, r, c, radius):
-    if self.map[r][c] == 1:
-      return -1
-
-    axes_wall = []
-    # four cardinal, four diagonal, and one in between each (slope +- 1/2 or 2)
-    for move in [(0, 1), (1, 2), (1, 1), (2, 1), (1, 0), (2, -1), (1, -1), (1, -2), (0, -1), (-2, -1), (-1, -1), (-1, -2), (-1, 0), (-2, 1), (-1, 1), (-1, 2)]:
-      count = 0
-      wall = False
-      r_curr = r
-      c_curr = c
-      while count < radius and not wall:
-        r_curr += move[0]
-        c_curr += move[1]
-
-        if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
-          break
-
-        if self.map[r_curr][c_curr] == 1:
-          wall = True
-
-        # count the in-between axes as two steps
-        if move[0] == 2 or move[1] == 2:
-          count += 2
-        else:
-          count += 1
-      
-      if wall:
-        axes_wall.append(True)
-      else:
-        axes_wall.append(False)
-
-    # count the number of changes in this cell's field of view
-    change_count = 0
-    for i in range(len(axes_wall)-1):
-      if axes_wall[i] != axes_wall[i+1]:
-        change_count += 1
-
-    if axes_wall[0] != axes_wall[15]:
-      change_count += 1
-
-    return change_count
-
-
-  def _avgVisCell(self, r, c):
-    total_vis = 0
-    num_axes = 0
-    for r_move in [-1, 0, 1]:
-      for c_move in [-1, 0, 1]:
-        if r_move == 0 and c_move == 0:
-          continue
-
-        this_vis = 0
-        r_curr = r
-        c_curr = c
-        wall_found = False
-        while not wall_found:
-          if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
-            break
-
-          if self.map[r_curr][c_curr] == 1:
-            wall_found = True
-          else:
-            this_vis += 1
-
-          r_curr += r_move
-          c_curr += c_move
-        
-        # if ran out of bounds before finding wall, don't count
-        if wall_found:
-          total_vis += this_vis
-          num_axes += 1
-    
-    return total_vis / num_axes
-
-
-  def _densityOfTile(self, row, col, radius):
-    count = 0
-    for r in range(row-radius, row+radius+1):
-      for c in range(col-radius, col+radius+1):
-        if r >= 0 and r < self.rows and c >= 0 and c < self.cols and (r!=row or c!=col):
-          count += self.map[r][c]
-
-    return count   
-
-  # determines how far a given cell is from a wall (non-diagonal)
-  """def _distToClosestWall(self, r, c):
-    if self.map[r][c] == 1:
-      return 0
-
-    wallFound = False
-    queue = Queue.Queue(maxsize=0)
-    queue.put((r, c))
-
-    while not wallFound:"""
-
-  def _isInMap(self, r, c):
-    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
-
-  # doesn't check diagonals
-  def _nearest_obs(self, r, c):
-    q = Queue.Queue(0)
-    # enqueue the four directions
-    q.put(self.Wrapper(1, r - 1, c, -1, 0))
-    q.put(self.Wrapper(1, r + 1, c, 1, 0))
-    q.put(self.Wrapper(1, r, c - 1, 0, -1))
-    q.put(self.Wrapper(1, r, c + 1, 0, 1))
-
-    while not q.empty():
-      point = q.get()
-      if self._isInMap(point.r, point.c):
-        if self.map[point.r][point.c] == 1:
-          return point.dist
-        else:
-          q.put(self.Wrapper(point.dist + 1, point.r + point.r_change, point.c + point.c_change, point.r_change, point.c_change))
-    return self.rows
-
-  # wrapper class for coordinates
-  class Wrapper:
-
-    def __init__(self, distance, row, col, row_change, col_change):
-      self.dist = distance
-      self.r = row
-      self.c = col
-      self.r_change = row_change
-      self.c_change = col_change
 
 class AStarSearch:
   def __init__(self, map):
@@ -837,7 +640,7 @@ def main(iteration=0):
     start_r = r_shift + left_coord_r * cyl_radius * 2
     start_c = c_shift
     end_r = r_shift + right_coord_r * cyl_radius * 2
-    end_c = (len(jackal_map[0]) - 1) * cyl_radius * 2 + c_shift
+    end_c = len(obstacle_map[0]) * cyl_radius * 2 + c_shift
     print("Start: (%f, %f) to Goal: (%f, %f)" % (start_r, start_c, end_r, end_c))
 
     # put paths into matrixes to display them
