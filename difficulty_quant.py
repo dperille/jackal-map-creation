@@ -1,4 +1,6 @@
 import sys
+import math
+import Queue
 
 class DifficultyMetrics:
   def __init__(self, map):
@@ -21,7 +23,7 @@ class DifficultyMetrics:
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        dists[r][c] = self._distToClosestWall(r, c, 0, sys.maxint)
+        dists[r][c] = self._nearest_obs(r, c)
 
     return dists
 
@@ -163,7 +165,7 @@ class DifficultyMetrics:
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
   def _nearest_obs(self, r, c):
-    pq = PriorityQueue()
+    pq = Queue.PriorityQueue()
     first_wrapper = self.Wrapper(0, r, c)
     pq.put(first_wrapper)
     visited = {(r, c) : first_wrapper}
