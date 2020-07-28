@@ -93,6 +93,8 @@ class JackalMap:
   # use flood-fill algorithm to find the open region including (r, c)
   def _getRegion(self, r, c):
     queue = Queue.Queue(maxsize=0)
+    
+    # region is 2D array that indicates the open region connected to (r, c) with a 1
     region = [[0 for i in range(self.cols)] for j in range(self.rows)]
     size = 0
 
@@ -798,8 +800,16 @@ def main(iteration=0):
     jackal_map = jMapGen.getMap()
     obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size)
 
+    # Debugging ------------------------------------------------------------------------------------- |
+    print('jackal_map:')
+    plt.imshow(jackal_map, cmap='Greys', interpolation='nearest')
+    plt.show()
+
+    # Debugging ------------------------------------------------------------------------------------- |
+
     # write map to .world file
-    writer = WorldWriter(world_file, obstacle_map, cyl_radius=0.075)
+    cyl_radius = 0.075
+    writer = WorldWriter(world_file, obstacle_map, cyl_radius)
     writer()
     r_shift, c_shift = writer.getShifts()
 
