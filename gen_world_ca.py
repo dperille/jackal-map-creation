@@ -581,7 +581,7 @@ def main(iteration=0):
                   "fillPct" : 0.35,
                   "rows" : 25,
                   "cols" : 25,
-                  "showMetrics" : 0 }
+                  "showMetrics" : 1 }
 
     # create 25x25 world generator and run smoothing iterations
     print("Seed: %d" % inputDict["seed"])
@@ -602,13 +602,6 @@ def main(iteration=0):
     # get the final jackal map and update the obstacle map
     jackal_map = jMapGen.getMap()
     obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size)
-
-    # Debugging ------------------------------------------------------------------------------------- |
-    print('jackal_map:')
-    plt.imshow(jackal_map, cmap='Greys', interpolation='nearest')
-    plt.show()
-
-    # Debugging ------------------------------------------------------------------------------------- |
 
     # write map to .world file
     cyl_radius = 0.075
@@ -666,7 +659,7 @@ def main(iteration=0):
     metrics_arr = np.asarray([diff.closestWall(), diff.density(3), diff.avgVisibility(), diff.dispersion(3)])
     np.save(diff_file, metrics_arr)
 
-    """
+    
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
@@ -676,7 +669,7 @@ def main(iteration=0):
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
-    """    
+        
 
 if __name__ == "__main__":
     main()

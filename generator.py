@@ -12,7 +12,7 @@ def is_grid(s):
     return 'grid_' in s
 
 def is_difficulty(s):
-    return 'difficulty_' in s
+    return 'difficulty_' in s and '.npy' in s
 
 def zipFilesInDir(dirName, zipFileName, filter):
     # create ZipFile object
@@ -31,7 +31,7 @@ def main():
     showHeatMap = 0
 
     # generate worlds
-    for i in range(2):
+    for i in range(10):
       gen_world_ca.main(i)
 
     # get current directory
