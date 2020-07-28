@@ -187,7 +187,7 @@ class DifficultyMetrics:
 
     # in case the queue is empty before a wall is found (shouldn't happen),
     # the farthest a cell can be from a wall is half the board, since the top and bottom rows are all walls
-    return self.rows / 2
+    return (self.rows - 1) / 2
 
   # wrapper class for coordinates
   class Wrapper:
