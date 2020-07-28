@@ -183,9 +183,9 @@ class JackalMap:
 
     for r in range(self.rows):
       for c in range(self.cols):
-        if regionA[r][c] == 1 and c > rightmostA[1]:
+        if regionA[r][c] == 1 and c >= rightmostA[1]:
           rightmostA = (r, c)
-        if regionB[r][c] == 1 and c < leftmostB[1]:
+        if regionB[r][c] == 1 and c <= leftmostB[1]:
           leftmostB = (r, c)
 
     lrchange = 0
