@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import Tkinter as tk
 from world_writer import WorldWriter
 from difficulty_quant import DifficultyMetrics
+from pgm_writer import PGMWriter
 
 def_kernel_size = 4
 
@@ -644,6 +645,11 @@ def main():
     jackal_map_with_path[right_coord_r][len(jackal_map[0])-1] = 0.65
     obstacle_map_with_path[left_coord_r][0] = 0.65
     obstacle_map_with_path[right_coord_r][len(obstacle_map[0])-1] = 0.65
+
+    # write the map to a pgm file for navigation
+    pgm_writer = PGMWriter(obstacle_map)
+    pgm_writer()
+
 
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
