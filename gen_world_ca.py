@@ -272,6 +272,18 @@ class AStarSearch:
     self.map_cols = len(map[0])
 
   def __call__(self, start_coord, end_coord):
+    # limit turns to 45 degrees
+    valid_moves_dict = {
+      (0, 1): [(-1, 1), (0, 1), (1, 1)],
+      (1, 1): [(0, 1), (1, 1), (1, 0)],
+      (1, 0): [(1, 1), (1, 0), (1, -1)],
+      (1, -1): [(1, 0), (1, -1), (0, -1)],
+      (0, -1): [(1, -1), (0, -1), (-1, -1)],
+      (-1, -1): [(0, -1), (-1, -1), (-1, 0)],
+      (-1, 0): [(-1, -1), (-1, 0), (-1, 1)],
+      (-1, 1): [(-1, 0), (-1, 1), (0, 1)]
+    }
+
     # initialize start and end nodes
     start_node = Node(None, start_coord)
     start_node.g = start_node.h = start_node.f = 0
@@ -287,6 +299,7 @@ class AStarSearch:
 
     # while there are nodes to process
     while len(not_visited) > 0:
+      
       # get lowest cost next node
       curr_node = not_visited[0]
       curr_idx = 0
@@ -294,8 +307,8 @@ class AStarSearch:
         if node.f < curr_node.f:
           curr_node = node
           curr_idx = idx
-
-      # mark this node as processed
+          
+      # pop this node from the unvisited list and add to visited list
       not_visited.pop(curr_idx)
       visited.append(curr_node)
 
@@ -303,18 +316,7 @@ class AStarSearch:
       if curr_node == end_node:
         return self.returnPath(curr_node)
 
-      # limit turns to 45 degrees
-      valid_moves_dict = {
-        (0, 1): [(-1, 1), (0, 1), (1, 1)],
-        (1, 1): [(0, 1), (1, 1), (1, 0)],
-        (1, 0): [(1, 1), (1, 0), (1, -1)],
-        (1, -1): [(1, 0), (1, -1), (0, -1)],
-        (0, -1): [(1, -1), (0, -1), (-1, -1)],
-        (-1, -1): [(0, -1), (-1, -1), (-1, 0)],
-        (-1, 0): [(-1, -1), (-1, 0), (-1, 1)],
-        (-1, 1): [(-1, 0), (-1, 1), (0, 1)]
-      }
-
+      # get all valid moves (either straight or 45 degree turn)
       valid_moves = []
       if curr_node == start_node:
         # if start node, can go any direction
@@ -347,25 +349,36 @@ class AStarSearch:
         child_node = Node(curr_node, child_pos)
         children.append(child_node)
 
-
       # loop through all walkable neighbors of this node
       for child in children:
 
-        # if neighbor already visited, not usable
+        # if already processed, don't use
         if child in visited:
           continue
 
-        # calculate f, g, h values
-        child.g += 1
-        child.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
-        child.f = child.g + child.h
+        # calculate g value
+        child_g = curr_node.g + 1
 
-        # if this node is already in the unprocessed list
-        # with a g-value lower than what we have, don't add it
-        if len([i for i in not_visited if child == i and child.g > i.g]) > 0:
-          continue
+        # check if this node is already in the unprocessed list
+        child_in_openset = False
+        for node in not_visited:
+          if node == child:
+            child_in_openset = True
 
-        not_visited.append(child)
+            # if the node is already in the list, but with a higher cost,
+            # update the cost to this new lower one
+            if child_g < node.g:
+              node.parent = curr_node
+              node.g = child_g
+              node.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
+              node.f = node.g + node.h
+
+        # if child is not yet in the unprocessed list, add it
+        if not child_in_openset:
+          child.g = child_g
+          child.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
+          child.f = child.g + child.f
+          not_visited.append(child)
 
   # generate the path from start to end
   def returnPath(self, end_node):
