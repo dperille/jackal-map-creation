@@ -5,6 +5,7 @@ class DifficultyMetrics:
     self.map = map
     self.rows = len(map)
     self.cols = len(map[0])
+    self.axes = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
 
   def density(self, radius):
     dens = [[0 for i in range(self.cols)] for j in range(self.rows)]
@@ -42,6 +43,21 @@ class DifficultyMetrics:
         disp[r][c] = self._cellDispersion(r, c, radius)
 
     return disp
+
+  def characteristic_dimension(self):
+    cdr = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        if self.map[r][c] == 1:
+          cdr[r][c] = 0
+
+        isovist_dists = []
+        for axis in self.axes:
+          isovist_dists.append(self._distance(r, c, axis))
+
+        cdr[r][c] = min(isovist_dists)
+
+    return cdr
 
   def axis_width(self, axis):
     width = [[0 for i in range(self.cols)] for j in range(self.rows)]
