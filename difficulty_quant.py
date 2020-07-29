@@ -91,6 +91,12 @@ class DifficultyMetrics:
 
     return dist
 
+  # dist is the result of calling _dist on an empty cell
+  # returns value between 0 and 1
+  def normalize_dist(dist):
+    dist += 1
+    return 1.0 / dist
+
 
   def _cellDispersion(self, r, c, radius):
     if self.map[r][c] == 1:
@@ -135,6 +141,11 @@ class DifficultyMetrics:
 
     return change_count
 
+  # param disperson is the return value of calling _cellDispersion on a cell
+  # returns value between 0 and 1
+  # _cellDispersion returns a value between 0 and 16, since it checks 16 directions
+  def normalize_dispersion(dispersion):
+    return dispersion / 16.0
 
   def _avgVisCell(self, r, c):
     total_vis = 0
@@ -167,6 +178,9 @@ class DifficultyMetrics:
     
     return total_vis / num_axes
 
+  # avgVis is the return value of a call to _avgVisCell
+  def normalize_avgVis(avgVis):
+    return 1.0 / avgVis
 
   def _densityOfTile(self, row, col, radius):
     count = 0
@@ -177,6 +191,11 @@ class DifficultyMetrics:
 
     return count   
 
+  # density is the return value of a call to _densityOfTile
+  # _densityOfTile returns a value in range [0, (2*radius + 1) ^ 2 - 1]
+  def normalize_density(density, radius):
+    highest_possible = (2 * radius + 1) ** 2.0
+    return density / highest_possible
 
   # simple bounds check
   def _isInMap(self, r, c):
@@ -212,7 +231,7 @@ class DifficultyMetrics:
   # given the distance to the nearest obstacle, return a value in range (0, 1]
   # this value is supposed to approximate difficulty wrt distance to nearest obstacle
   # dist_nearest_obs cannot be zero, since it is impossible to navigate on an obstacle space
-  def normalize_nearest_obs(self, dist_nearest_obs):
+  def normalize_nearest_obs(dist_nearest_obs):
     return 1.0 / dist_nearest_obs
 
 
