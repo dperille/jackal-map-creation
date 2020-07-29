@@ -561,13 +561,76 @@ class Input:
     self.root.destroy()
 
 
+# metric_map is a grid with the value of that metric at each cell
+# path is the list of points that make up the path
+# normalize_metric is the function to normalize the metric
+def metric_avg(metric_map, path, normalize_metric):
+    total = 0.0
+    for point in path:
+      total += normalize_metric(metric_map[path[0]][path[1]])
+  
+    return total / len(path)
+
+def metric_avg_with_radius(metric_map, path, normalize_metric, radius):
+    total = 0.0
+    for point in path:
+        total += normalize_metric(metric_map[path[0]][path[1]], radius)
+  
+    return total / len(path)
+  
+
+# diff is DifficultyMetrics created from jackal c-space map
+# return a numpy array
+def all_metrics_avg(diff, path, radius):
+
+    DM = DifficultyMetrics
+    # list of metric averages
+    result = []
+    total = 0.0
+    
+    # density
+    densities = diff.density(radius)
+    avg_all_density = metric_avg_with_radius(densities, path, DM.normalize_density, radius)
+    result.append(avg_all_density)
+    total += avg_all_density
+
+    # closest wall
+    closest_walls = diff.closestWall()
+    avg_closest_walls = metric_avg(closest_walls, path, DM.normalize_nearest_obs)
+    result.append()
+    total += avg_closest_walls
+
+    # avgVisibility
+    avgVisibilites = diff.avgVisibility()
+    avg_all_visibilities = metric_avg(avgVisibilites, path, DM.normalize_avgVis)
+    result.append(avg_all_visibilities)
+    total += avg_all_visibilities
+
+    # dispersion
+    dispersions = diff.dispersion(radius)
+    avg_dispersion = metric_avg(dispersions, path, DM.normalize_dispersion)
+    result.append(avg_dispersion)
+    total += avg_dispersion
+
+    # characteristic_dimension
+    char_dimensions = diff.characteristic_dimension()
+    avg_char_dims = metric_avg(char_dimensions, path, DM.normalize_dist)
+    result.appendavg_char_dims
+    total += avg_char_dims
+
+    result.append(total / 5)
+
+    return np.asarray(result)
+    
+
 def main(iteration=0):
 
     # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
 
     world_file = "world_" + str(iteration) + ".world"
     grid_file = "grid_" + str(iteration) + ".npy"
-    diff_file = "difficulty_" + str(iteration) + ".npy"
+    path_file = "path_" + str(iteration) + ".npy"
+    diff_file = "difficulties_" + str(iteration) + ".npy"
 
     # get user parameters, if provided
     # inputWindow = Input()
@@ -649,11 +712,15 @@ def main(iteration=0):
     obstacle_map_with_path[left_coord_r][0] = 0.65
     obstacle_map_with_path[right_coord_r][len(obstacle_map[0])-1] = 0.65
 
-    np_arr = np.asarray(obstacle_map_with_path)
-    np.save(grid_file, np_arr)
+    
+    grid_arr = np.asarray(obstacle_map)
+    np.save(grid_file, grid_arr)
+
+    path_arr = np.asarray(path)
+    np.save(path_file, path_arr)
 
     diff = DifficultyMetrics(jackal_map)
-    metrics_arr = np.asarray([diff.closestWall(), diff.density(3), diff.avgVisibility(), diff.dispersion(3)])
+    metrics_arr = all_metrics_avg(diff, path, 3)
     np.save(diff_file, metrics_arr)
 
     
