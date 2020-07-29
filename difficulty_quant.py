@@ -1,4 +1,6 @@
 import sys
+import Queue
+import math
 
 class DifficultyMetrics:
   def __init__(self, map):
@@ -22,7 +24,7 @@ class DifficultyMetrics:
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        dists[r][c] = self._distToClosestWall(r, c, 0, sys.maxint)
+        dists[r][c] = self._distToClosestWall(r, c)
 
     return dists
 
@@ -174,29 +176,38 @@ class DifficultyMetrics:
 
     return count   
 
-  # determines how far a given cell is from a wall (non-diagonal)
-  def _distToClosestWall(self, r, c, currCount, currBest):
-    if r < 0 or r >= self.rows or c < 0 or c >= self.cols:
-      return sys.maxint
+  def _isInMap(self, r, c):
+    return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
-    if self.map[r][c] == 1:
-      return 0
+  def _distToClosestWall(self, r, c):
+    pq = Queue.PriorityQueue()
+    first_wrapper = self.Wrapper(0, r, c)
+    pq.put(first_wrapper)
+    visited = {(r, c) : first_wrapper}
 
-    if currCount >= currBest:
-      return sys.maxint
 
-    bestUp = 1 + self._distToClosestWall(r-1, c, currCount+1, currBest)
-    if bestUp < currBest:
-      currBest = bestUp
-    
-    bestDown = 1 + self._distToClosestWall(r+1, c, currCount+1, currBest)
-    if bestDown < currBest:
-      currBest = bestDown
-    
-    bestLeft = 1 + self._distToClosestWall(r, c-1, currCount+1, currBest)
-    if bestLeft < currBest:
-      currBest = bestLeft
+    while not pq.empty():
+      point = pq.get()
+      if self.map[point.r][point.c] == 1: # found an obstacle!
+        return point.dist
+      else:
+        # enqueue all neighbors if they are in the map and have not been visited
+        for row in range(point.r - 1, point.r + 2):
+          for col in range(point.c - 1, point.c + 2):
+            if self._isInMap(row, col) and (row, col) not in visited:
+              dist = math.sqrt((row - r) ** 2 + (col - c) ** 2)
+              neighbor = self.Wrapper(dist, row, col)
+              pq.put(neighbor)
+              visited[(row, col)] = neighbor
 
-    bestRight = 1 + self._distToClosestWall(r, c+1, currCount+1, currBest)
+    # in case the queue is empty before a wall is found (shouldn't happen),
+    # the farthest a cell can be from a wall is half the board, since the top and bottom rows are all walls
+    return (self.rows - 1) / 2
 
-    return min(bestUp, bestDown, bestLeft, bestRight)
+  # wrapper class for coordinates
+  class Wrapper:
+
+    def __init__(self, distance, row, col):
+      self.dist = distance
+      self.r = row
+      self.c = col
