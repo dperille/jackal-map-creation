@@ -1,6 +1,6 @@
 <state world_name='default'>
-      <sim_time>46 817000000</sim_time>
-      <real_time>50 373153562</real_time>
+      <sim_time>00 000000000</sim_time>
+      <real_time>00 000000000</real_time>
       <wall_time>1591479841 622585835</wall_time>
       <iterations>46817</iterations>
       <model name='ground_plane'>

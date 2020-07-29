@@ -412,10 +412,7 @@ class Display:
       "density": diff.density(density_radius),
       "avgVis": diff.avgVisibility(),
       "dispersion": diff.dispersion(dispersion_radius),
-      "leftright_width": diff.axis_width((0, 1)),
-      "updown_width": diff.axis_width((1, 0)),
-      "pos_diag_width": diff.axis_width((-1, 1)),
-      "neg_diag_width": diff.axis_width((1, 1)),
+      "char_dimension": diff.characteristic_dimension(),
     }
 
   def __call__(self):
@@ -438,14 +435,14 @@ class Display:
     dist_cbar = fig.colorbar(dist_plot, ax=ax[0][1], orientation='horizontal')
     dist_cbar.ax.tick_params(labelsize='xx-small')
 
-    # density
-    densities = self.metrics.get("density")
-    density_plot = ax[0][2].imshow(densities, cmap='binary', interpolation='nearest')
-    density_plot.axes.get_xaxis().set_visible(False)
-    density_plot.axes.get_yaxis().set_visible(False)
-    ax[0][2].set_title("%d-square radius density" % self.density_radius)
-    dens_cbar = fig.colorbar(density_plot, ax=ax[0][2], orientation='horizontal')
-    dens_cbar.ax.tick_params(labelsize='xx-small')
+    # characteristic dimension
+    cdr = self.metrics.get("char_dimension")
+    cdr_plot = ax[0][2].imshow(cdr, cmap='binary', interpolation='nearest')
+    cdr_plot.axes.get_xaxis().set_visible(False)
+    cdr_plot.axes.get_yaxis().set_visible(False)
+    ax[0][2].set_title("Char dimension")
+    cdr_cbar = fig.colorbar(cdr_plot, ax=ax[0][2], orientation='horizontal')
+    cdr_cbar.ax.tick_params(labelsize='xx-small')
 
     # average visibility
     avgVis = self.metrics.get("avgVis")

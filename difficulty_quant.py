@@ -7,6 +7,7 @@ class DifficultyMetrics:
     self.map = map
     self.rows = len(map)
     self.cols = len(map[0])
+    self.axes = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
 
   def density(self, radius):
     dens = [[0 for i in range(self.cols)] for j in range(self.rows)]
@@ -23,7 +24,8 @@ class DifficultyMetrics:
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        dists[r][c] = self._nearest_obs(r, c)
+
+        dists[r][c] = self._distToClosestWall(r, c)
 
     return dists
 
@@ -44,6 +46,21 @@ class DifficultyMetrics:
         disp[r][c] = self._cellDispersion(r, c, radius)
 
     return disp
+
+  def characteristic_dimension(self):
+    cdr = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    for r in range(self.rows):
+      for c in range(self.cols):
+        if self.map[r][c] == 1:
+          cdr[r][c] = 0
+
+        isovist_dists = []
+        for axis in self.axes:
+          isovist_dists.append(self._distance(r, c, axis))
+
+        cdr[r][c] = min(isovist_dists)
+
+    return cdr
 
   def axis_width(self, axis):
     width = [[0 for i in range(self.cols)] for j in range(self.rows)]
@@ -160,13 +177,14 @@ class DifficultyMetrics:
 
     return count   
 
+
   # simple bounds check
   def _isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
   # returns a value in range [0, (self.rows - 1) / 2]
   # returns 0 if self.map[r][c] is an obstacle, 1 if an adjacent, non-diagonal cell is an obstacle, etc.
-  def _nearest_obs(self, r, c):
+  def _distToClosestWall(self, r, c):
     pq = Queue.PriorityQueue()
     first_wrapper = self.Wrapper(0, r, c)
     pq.put(first_wrapper)
@@ -210,4 +228,5 @@ class DifficultyMetrics:
 
     def __lt__(self, value):
         return self.dist < value.dist
+
 
