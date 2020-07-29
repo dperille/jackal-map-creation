@@ -164,6 +164,8 @@ class DifficultyMetrics:
   def _isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
+  # returns a value in range [0, (self.rows - 1) / 2]
+  # returns 0 if self.map[r][c] is an obstacle, 1 if an adjacent, non-diagonal cell is an obstacle, etc.
   def _nearest_obs(self, r, c):
     pq = Queue.PriorityQueue()
     first_wrapper = self.Wrapper(0, r, c)
@@ -188,6 +190,13 @@ class DifficultyMetrics:
     # in case the queue is empty before a wall is found (shouldn't happen),
     # the farthest a cell can be from a wall is half the board, since the top and bottom rows are all walls
     return (self.rows - 1) / 2
+
+  # given the distance to the nearest obstacle, return a value in range (0, 1]
+  # this value is supposed to approximate difficulty wrt distance to nearest obstacle
+  # dist_nearest_obs cannot be zero, since it is impossible to navigate on an obstacle space
+  def normalize_nearest_obs(self, dist_nearest_obs):
+    return 1.0 / dist_nearest_obs
+
 
   # wrapper class for coordinates
   class Wrapper:
