@@ -13,7 +13,7 @@ with open("./world-boilerplate/cylinder_place.txt") as f:
 
 class WorldWriter():
 
-  def __init__(self, filename, map, cyl_radius):
+  def __init__(self, filename, map, cyl_radius, contain_wall_length):
     self.file = open(filename, "w")
     self.map = map
     self.numCylinders = 0
@@ -21,6 +21,7 @@ class WorldWriter():
     self.cyl_radius = cyl_radius
     self.r_shift = -len(self.map) * self.cyl_radius
     self.c_shift = 2
+    self.contain_wall_length = contain_wall_length
 
   def __call__(self):
     # write .world boilerplate at start
@@ -36,16 +37,18 @@ class WorldWriter():
           self._createCylinder((r*radius_ratio)+self.r_shift, (c*radius_ratio)+self.c_shift, 0, 0, 0, 0, radius=self.cyl_radius)
 
     # add a wall around the robot to force it to actually go through the obstacles
-    contain_wall_length = 5
-    c_coord = self.c_shift - contain_wall_length
-    while c_coord + self.cyl_radius < self.c_shift:
+    self.contain_wall_length = 5
+    contain_wall_cylinders = 0
+    c_coord = self.c_shift - self.contain_wall_length
+    while c_coord + self.cyl_radius < self.c_shift - self.cyl_radius:
       self._createCylinder(self.r_shift, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
       self._createCylinder(self.r_shift + self.cyl_radius * 2 * (len(self.map) - 1), c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
       c_coord += self.cyl_radius * 2
+      contain_wall_cylinders += 1
 
     r_coord = self.r_shift + self.cyl_radius * 2
     while r_coord < -self.r_shift - self.cyl_radius * 6:
-      self._createCylinder(r_coord, self.c_shift - contain_wall_length, 0, 0, 0, 0, radius=self.cyl_radius)
+      self._createCylinder(r_coord, self.c_shift - self.contain_wall_length, 0, 0, 0, 0, radius=self.cyl_radius)
       r_coord += self.cyl_radius * 2
 
 
@@ -60,6 +63,8 @@ class WorldWriter():
 
     # close file
     self._close()
+
+    return contain_wall_cylinders
 
   # returns true if all 8 spaces around (r, c) are filled, false otherwise
   def _allNeighborsFilled(self, r, c):

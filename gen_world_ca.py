@@ -599,9 +599,10 @@ def main():
 
     # write map to .world file
     cyl_radius = 0.075
+    contain_wall_length = 5
     writer = WorldWriter("../jackal_ws/src/jackal_simulator/jackal_gazebo"
-        + "/worlds/proc_world.world", obstacle_map, cyl_radius=cyl_radius)
-    writer()
+        + "/worlds/proc_world.world", obstacle_map, cyl_radius=cyl_radius, contain_wall_length=contain_wall_length)
+    contain_wall_cylinders = writer()
     r_shift, c_shift = writer.getShifts()
 
     """ Generate random points to demonstrate path """
@@ -647,7 +648,7 @@ def main():
     obstacle_map_with_path[right_coord_r][len(obstacle_map[0])-1] = 0.65
 
     # write the map to a pgm file for navigation
-    pgm_writer = PGMWriter(obstacle_map)
+    pgm_writer = PGMWriter(obstacle_map, contain_wall_cylinders)
     pgm_writer()
 
 

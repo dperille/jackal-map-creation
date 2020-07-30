@@ -3,10 +3,11 @@ import random
 import sys
 
 class PGMWriter():
-    def __init__(self, map):
+    def __init__(self, map, contain_wall_cylinders):
         self.map = map
         self.rows = len(map)
-        self.cols = len(map[0])
+        self.cols = len(map[0]) + contain_wall_cylinders
+        self.contain_wall_cylinders = contain_wall_cylinders
 
     def __call__(self):
 
@@ -18,14 +19,23 @@ class PGMWriter():
 
         for r in range(self.rows):
             for c in range(self.cols):
-                if self.map[r][c] == 1:
+                # add the containment wall
+                if c < self.contain_wall_cylinders:
+                    if r == 0 or r == self.rows - 1:
+                        buff.append(0)
+                    elif c == 0:
+                        buff.append(0)
+                    else:
+                        buff.append(255)
+
+                elif self.map[r][c - self.contain_wall_cylinders] == 1:
                     buff.append(0)
                 else:
-                    buff.append(1)
+                    buff.append(255)
 
 
         # open file for writing 
-        filename = 'map_pgm.pgm'
+        filename = '../jackal_ws/src/jackal/jackal_navigation/maps/map_pgm.pgm'
 
         try:
             fout=open(filename, 'wb')
@@ -34,7 +44,7 @@ class PGMWriter():
 
 
         # define PGM Header
-        pgmHeader = 'P5' + '\n' + str(width) + '  ' + str(height) + '  ' + str(1) + '\n'
+        pgmHeader = 'P5' + '\n' + str(width) + '  ' + str(height) + '  ' + str(255) + '\n'
 
         # write the header to the file
         fout.write(pgmHeader)
