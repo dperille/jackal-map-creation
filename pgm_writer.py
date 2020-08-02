@@ -12,13 +12,13 @@ class PGMWriter():
     def __call__(self):
 
         # define the width  (columns) and height (rows) of your image
-        width = self.cols
-        height = self.rows
+        width = self.rows
+        height = self.cols
 
         buff=array.array('B')
 
-        for r in range(self.rows):
-            for c in range(self.cols):
+        for c in range(self.cols - 1, -1, -1):
+            for r in range(self.rows):
                 # add the containment wall
                 if c < self.contain_wall_cylinders:
                     if r == 0 or r == self.rows - 1:
