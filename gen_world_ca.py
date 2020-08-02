@@ -215,7 +215,7 @@ class JackalMap:
     return coords_cleared
 
   # returns a path between all points in the list points using A*
-  def getPath(self, points):
+  def getPath(self, points, dist_map):
     num_points = len(points)
     if num_points < 2:
       raise Exception("Path needs at least two points")
@@ -231,7 +231,7 @@ class JackalMap:
 
       # generate path between this point and the next one in the list
       a_star = AStarSearch(self.map)
-      intermediate_path = a_star(points[n], points[n+1])
+      intermediate_path = a_star(points[n], points[n+1], dist_map)
       
       # add to the overall path
       if n > 0:
@@ -272,7 +272,7 @@ class AStarSearch:
     self.map_rows = len(map)
     self.map_cols = len(map[0])
 
-  def __call__(self, start_coord, end_coord):
+  def __call__(self, start_coord, end_coord, dist_map):
     # limit turns to 45 degrees
     valid_moves_dict = {
       (0, 1): [(-1, 1), (0, 1), (1, 1)],
@@ -372,13 +372,15 @@ class AStarSearch:
               node.parent = curr_node
               node.g = child_g
               node.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
-              node.f = node.g + node.h
+
+              # distance from start + distance to end + factor to penalize cells close to walls
+              node.f = node.g + node.h + (1 / dist_map[child.r][child.c])
 
         # if child is not yet in the unprocessed list, add it
         if not child_in_openset:
           child.g = child_g
           child.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
-          child.f = child.g + child.f
+          child.f = child.g + child.f + (1 / dist_map[child.r][child.c])
           not_visited.append(child)
 
   # generate the path from start to end
@@ -620,8 +622,10 @@ def main():
     
     # generate path, if possible
     path = []
+    diff_quant = DifficultyMetrics(jackal_map)
+    dist_map = diff_quant.closestWall()
     print("Points: (%d, 0), (%d, %d)" % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
-    path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)])
+    path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
     print("Found path!")
 
     # print start and end points in gazebo coords
