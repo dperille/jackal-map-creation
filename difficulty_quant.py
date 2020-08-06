@@ -1,22 +1,24 @@
-import sys
 import math
 import Queue
-
+  
 class DifficultyMetrics:
-  def __init__(self, map):
+  # radius used for density and dispersion
+  def __init__(self, map, path, radius):
     self.map = map
     self.rows = len(map)
     self.cols = len(map[0])
     self.axes = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
+    self.path = path
+    self.radius = radius
 
-  def density(self, radius):
+  def density(self):
     dens = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
         if self.map[r][c] == 0:
-          dens[r][c] = self._densityOfTile(r, c, radius)
+          dens[r][c] = self._densityOfTile(r, c, self.radius)
         else:
-          dens[r][c] = (radius * 2) ** 2
+          dens[r][c] = (self.radius * 2) ** 2
 
     return dens
 
@@ -39,11 +41,11 @@ class DifficultyMetrics:
 
   # calculates the number of changes betweeen open & wall
   # in its field of view (along 16 axes)
-  def dispersion(self, radius):
+  def dispersion(self):
     disp = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        disp[r][c] = self._cellDispersion(r, c, radius)
+        disp[r][c] = self._cellDispersion(r, c, self.radius)
 
     return disp
 
@@ -70,6 +72,7 @@ class DifficultyMetrics:
 
     return width
 
+  # currently returns a value between 0 and board width/length - 1
   def _distance(self, r, c, axis):
     if self.map[r][c] == 1:
       return -1
@@ -93,10 +96,25 @@ class DifficultyMetrics:
 
   # dist is the result of calling _dist on an empty cell
   # returns value between 0 and 1
-  def normalize_dist(dist):
+  def normalize_dist(self, dist):
     dist += 1
     return 1.0 / dist
 
+  # a and b are points (2-tuples)
+  def _dist_between_points(self, a, b):
+    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
+
+  # path is list of points (2-tuples)
+  def tortuosity(self):
+    arc_len = 0.0
+    for i in range(1, len(self.path)):
+      arc_len += self._dist_between_points(self.path[i - 1], self.path[i])
+      
+    chord_len = self._dist_between_points(self.path[0], self.path[-1])
+    return arc_len / chord_len
+
+  def normalize_tortuosity(self, tort):
+    return (-1.0 / tort) + 1
 
   def _cellDispersion(self, r, c, radius):
     if self.map[r][c] == 1:
@@ -144,8 +162,8 @@ class DifficultyMetrics:
   # param disperson is the return value of calling _cellDispersion on a cell
   # returns value between 0 and 1
   # _cellDispersion returns a value between 0 and 16, since it checks 16 directions
-  def normalize_dispersion(dispersion):
-    return dispersion / 16.0
+  def normalize_dispersion(self, disp):
+    return disp / 16.0
 
   def _avgVisCell(self, r, c):
     total_vis = 0
@@ -179,7 +197,7 @@ class DifficultyMetrics:
     return total_vis / num_axes
 
   # avgVis is the return value of a call to _avgVisCell
-  def normalize_avgVis(avgVis):
+  def normalize_avgVis(self, avgVis):
     return 1.0 / avgVis
 
   def _densityOfTile(self, row, col, radius):
@@ -193,9 +211,9 @@ class DifficultyMetrics:
 
   # density is the return value of a call to _densityOfTile
   # _densityOfTile returns a value in range [0, (2*radius + 1) ^ 2 - 1]
-  def normalize_density(density, radius):
+  def normalize_density(self, dens, radius):
     highest_possible = (2 * radius + 1) ** 2.0
-    return density / highest_possible
+    return dens / highest_possible
 
   # simple bounds check
   def _isInMap(self, r, c):
@@ -231,9 +249,8 @@ class DifficultyMetrics:
   # given the distance to the nearest obstacle, return a value in range (0, 1]
   # this value is supposed to approximate difficulty wrt distance to nearest obstacle
   # dist_nearest_obs cannot be zero, since it is impossible to navigate on an obstacle space
-  def normalize_nearest_obs(dist_nearest_obs):
-    return 1.0 / dist_nearest_obs
-
+  def normalize_closest_wall(self, dist_closest_wall):
+    return 1.0 / dist_closest_wall
 
   # wrapper class for coordinates
   class Wrapper:
@@ -246,6 +263,65 @@ class DifficultyMetrics:
     
 
     def __lt__(self, value):
-        return self.dist < value.dist
+      return self.dist < value.dist
 
+  # return a list of the normalized average for all metrics
+  # metrics are averaged over each point in the path
+  def avg_all_metrics(self):
+    result = []
 
+    total = 0.0
+    running_total = 0.0
+
+    # density
+    for row, col in self.path:
+      total += self._densityOfTile(row, col, self.radius)
+    norm_avg = self.normalize_density(total / len(self.path), self.radius)
+    running_total += norm_avg
+    result.append(norm_avg)
+
+    # closest wall
+    total = 0.0
+    for row, col in self.path:
+      total += self._distToClosestWall(row, col)
+    norm_avg = self.normalize_closest_wall(total / len(self.path))
+    running_total += norm_avg
+    result.append(norm_avg)  
+    
+    # average visibility
+    total = 0.0
+    for row, col in self.path:
+      total += self._avgVisCell(row, col)
+    norm_avg = self.normalize_avgVis(total / len(self.path))
+    running_total += norm_avg
+    result.append(norm_avg) 
+
+    # dispersion
+    total = 0.0
+    for row, col in self.path:
+      total += self._cellDispersion(row, col, self.radius)
+    norm_avg = self.normalize_dispersion(total / len(self.path))
+    running_total += norm_avg
+    result.append(norm_avg)
+
+    # characteristic dimension
+    total = 0.0
+    char_dim_grid = self.characteristic_dimension()
+    for row, col in self.path:
+      total += char_dim_grid[row][col]
+    norm_avg = self.normalize_dist(total / len(self.path))
+    running_total += norm_avg
+    result.append(norm_avg)
+
+    # tortuosity
+    tort = self.tortuosity()
+    norm_avg = self.normalize_tortuosity(tort)
+    running_total += norm_avg
+    result.append(norm_avg)
+
+    # final average
+    num_metrics = 6
+    result.append(running_total / num_metrics)
+
+    return result
+    

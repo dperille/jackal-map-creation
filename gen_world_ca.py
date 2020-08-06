@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import Tkinter as tk
 from world_writer import WorldWriter
 import numpy as np
+import difficulty_quant ##################################
 from difficulty_quant import DifficultyMetrics
 
 
@@ -218,6 +219,7 @@ class JackalMap:
     return coords_cleared
 
   # returns a path between all points in the list points using A*
+  # if a valid path cannot be found, returns None
   def getPath(self, points):
     num_points = len(points)
     if num_points < 2:
@@ -235,6 +237,8 @@ class JackalMap:
       # generate path between this point and the next one in the list
       a_star = AStarSearch(self.map)
       intermediate_path = a_star(points[n], points[n+1])
+      if not intermediate_path:
+        return None
       
       # add to the overall path
       if n > 0:
@@ -398,20 +402,21 @@ class Node:
  
 
 class Display:
-  def __init__(self, map, map_with_path, jackal_map, jackal_map_with_path, density_radius, dispersion_radius):
+  def __init__(self, map, path, map_with_path, jackal_map, jackal_map_with_path, density_radius, dispersion_radius):
     self.map = map
+    self.path = path
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
     self.jackal_map_with_path = jackal_map_with_path
     self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
-    diff = DifficultyMetrics(jackal_map)
+    diff = DifficultyMetrics(jackal_map, path, density_radius)
     self.metrics = {
       "closestDist": diff.closestWall(),
-      "density": diff.density(density_radius),
+      "density": diff.density(),
       "avgVis": diff.avgVisibility(),
-      "dispersion": diff.dispersion(dispersion_radius),
+      "dispersion": diff.dispersion(),
       "char_dimension": diff.characteristic_dimension(),
     }
 
@@ -559,71 +564,9 @@ class Input:
       self.inputs["showMetrics"] = default_show_metrics
       
     self.root.destroy()
-
-
-# metric_map is a grid with the value of that metric at each cell
-# path is the list of points that make up the path
-# normalize_metric is the function to normalize the metric
-def metric_avg(metric_map, path, normalize_metric):
-    total = 0.0
-    for point in path:
-      total += normalize_metric(metric_map[path[0]][path[1]])
-  
-    return total / len(path)
-
-def metric_avg_with_radius(metric_map, path, normalize_metric, radius):
-    total = 0.0
-    for point in path:
-        total += normalize_metric(metric_map[path[0]][path[1]], radius)
-  
-    return total / len(path)
-  
-
-# diff is DifficultyMetrics created from jackal c-space map
-# return a numpy array
-def all_metrics_avg(diff, path, radius):
-
-    DM = DifficultyMetrics
-    # list of metric averages
-    result = []
-    total = 0.0
-    
-    # density
-    densities = diff.density(radius)
-    avg_all_density = metric_avg_with_radius(densities, path, DM.normalize_density, radius)
-    result.append(avg_all_density)
-    total += avg_all_density
-
-    # closest wall
-    closest_walls = diff.closestWall()
-    avg_closest_walls = metric_avg(closest_walls, path, DM.normalize_nearest_obs)
-    result.append()
-    total += avg_closest_walls
-
-    # avgVisibility
-    avgVisibilites = diff.avgVisibility()
-    avg_all_visibilities = metric_avg(avgVisibilites, path, DM.normalize_avgVis)
-    result.append(avg_all_visibilities)
-    total += avg_all_visibilities
-
-    # dispersion
-    dispersions = diff.dispersion(radius)
-    avg_dispersion = metric_avg(dispersions, path, DM.normalize_dispersion)
-    result.append(avg_dispersion)
-    total += avg_dispersion
-
-    # characteristic_dimension
-    char_dimensions = diff.characteristic_dimension()
-    avg_char_dims = metric_avg(char_dimensions, path, DM.normalize_dist)
-    result.appendavg_char_dims
-    total += avg_char_dims
-
-    result.append(total / 5)
-
-    return np.asarray(result)
     
 
-def main(iteration=0):
+def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showMetrics=0):
 
     # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
 
@@ -636,12 +579,12 @@ def main(iteration=0):
     # inputWindow = Input()
     # inputDict = inputWindow.inputs
 
-    inputDict = { "seed" : hash(datetime.datetime.now()),
-                  "smoothIter": 4,
-                  "fillPct" : 0.35,
-                  "rows" : 25,
-                  "cols" : 25,
-                  "showMetrics" : 1 }
+    inputDict = { "seed" : seed,
+                  "smoothIter": smoothIter,
+                  "fillPct" : fillPct,
+                  "rows" : rows,
+                  "cols" : cols,
+                  "showMetrics" : showMetrics }
 
     # create 25x25 world generator and run smoothing iterations
     print("Seed: %d" % inputDict["seed"])
@@ -686,6 +629,11 @@ def main(iteration=0):
     path = []
     print("Points: (%d, 0), (%d, %d)" % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
     path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)])
+
+    if not path:
+      print("path not found")
+      return # path not found, throw this one out
+
     print("Found path!")
 
 
@@ -719,21 +667,24 @@ def main(iteration=0):
     path_arr = np.asarray(path)
     np.save(path_file, path_arr)
 
-    diff = DifficultyMetrics(jackal_map)
-    metrics_arr = all_metrics_avg(diff, path, 3)
+    diff = DifficultyMetrics(jackal_map, path, radius=3)
+    metrics_arr = np.asarray(diff.avg_all_metrics())
+    print(metrics_arr)
     np.save(diff_file, metrics_arr)
 
     
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
-      display = Display(obstacle_map, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
+      display = Display(obstacle_map, path, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
       display()
 
     # only show the map itself
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
+    
         
+    return True # path found
 
 if __name__ == "__main__":
     main()
