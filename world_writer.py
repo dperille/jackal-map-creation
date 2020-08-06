@@ -67,7 +67,7 @@ class WorldWriter():
     self._close()
 
     contain_wall_cylinders = self.contain_wall_length / (self.cyl_radius * 2)
-    return contain_wall_cylinders
+    return int(contain_wall_cylinders)
 
   # returns true if all 8 spaces around (r, c) are filled, false otherwise
   def _allNeighborsFilled(self, r, c):
