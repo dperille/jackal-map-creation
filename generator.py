@@ -17,6 +17,9 @@ def is_path(s):
 def is_difficulty(s):
     return 'difficulties_' in s
 
+def is_pgm(s):
+    return 'pgm' in s
+
 def zipFilesInDir(dirName, zipFileName, filter):
     # create ZipFile object
     with ZipFile(zipFileName, 'w') as zipObj:
@@ -57,6 +60,7 @@ def main():
     zipFilesInDir(curr_dir, 'sampleGrids.zip', is_grid)
     zipFilesInDir(curr_dir, 'samplePaths.zip', is_path)
     zipFilesInDir(curr_dir, 'sampleDiffs.zip', is_difficulty)
+    zipFilesInDir(curr_dir, 'samplePgms.zip', is_pgm)
 
 
 if __name__ == "__main__":

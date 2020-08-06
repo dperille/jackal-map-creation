@@ -248,7 +248,6 @@ class DifficultyMetrics:
 
   # given the distance to the nearest obstacle, return a value in range (0, 1]
   # this value is supposed to approximate difficulty wrt distance to nearest obstacle
-  # dist_nearest_obs cannot be zero, since it is impossible to navigate on an obstacle space
   def normalize_closest_wall(self, dist_closest_wall):
     return 1.0 / dist_closest_wall
 
@@ -324,4 +323,4 @@ class DifficultyMetrics:
     result.append(running_total / num_metrics)
 
     return result
-    
+
