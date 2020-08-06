@@ -8,6 +8,7 @@ class PGMWriter():
         self.rows = len(map)
         self.cols = len(map[0]) + contain_wall_cylinders
         self.contain_wall_cylinders = contain_wall_cylinders
+        self.filename = filename
 
     def __call__(self):
 
@@ -36,7 +37,7 @@ class PGMWriter():
 
         # open file for writing
         try:
-            fout=open(filename, 'wb')
+            fout=open(self.filename, 'wb')
         except IOError, er:
             sys.exit()
 

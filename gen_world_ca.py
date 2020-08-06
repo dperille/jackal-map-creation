@@ -220,7 +220,6 @@ class JackalMap:
     return coords_cleared
 
   # returns a path between all points in the list points using A*
-<<<<<<< HEAD
   # if a valid path cannot be found, returns None
   def getPath(self, points, dist_map):
     num_points = len(points)
@@ -647,7 +646,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showM
     
     # generate path, if possible
     path = []
-    diff_quant = DifficultyMetrics(jackal_map)
+    diff_quant = DifficultyMetrics(jackal_map, path, radius=3)
     dist_map = diff_quant.closestWall()
     print("Points: (%d, 0), (%d, %d)" % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
     path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
@@ -699,6 +698,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showM
     pgm_writer()
 
 
+    """
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, path, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
@@ -708,7 +708,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showM
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
-    
+    """
         
     return True # path found
 
