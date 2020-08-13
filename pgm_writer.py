@@ -18,7 +18,7 @@ class PGMWriter():
         buff=array.array('B')
 
         for c in range(self.cols - 1, -1, -1):
-            for r in range(self.rows):
+            for r in range(self.rows - 1, -1, 1):
                 # add the containment wall
                 if c < self.contain_wall_cylinders:
                     if r == 0 or r == self.rows - 1:
