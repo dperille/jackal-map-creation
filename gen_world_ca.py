@@ -584,7 +584,7 @@ class Input:
     self.root.destroy()
     
 
-def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=30, cols=40, showMetrics=1):
+def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showMetrics=1):
 
     # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
 

@@ -24,6 +24,9 @@ def is_difficulty(s):
 def is_pgm(s):
   return '.pgm' in s
 
+def is_yaml(s):
+  return '.yaml' in s
+
 
 def zipFilesInDir(dirName, zipFileName, filter):
   # create ZipFile object
@@ -40,16 +43,16 @@ def zipFilesInDir(dirName, zipFileName, filter):
 def main():
   total_counter = 0
 
-  # fill percent from 0.07 to 0.27, interval 0.05 (5 iterations)
-  for i in range(5):
-    fillPct = (i * 0.05) + 0.07
-    # smooth iterations from 1 to 4, inclusive
-    for smooths in range(1, 5):
+  # fill percent from 0.10 to 0.30, interval 0.025 (10 levels)
+  for i in range(10):
+    fillPct = (i * 0.025) + 0.10
+    # smooth iterations from 2 to 5 (4 levels)
+    for smooths in range(2, 6):
       param_counter = 0
       while param_counter < 1:
+	print("world", total_counter, "fillPct", fillPct, "smooths", smooths)
         result = gen_world_ca.main(total_counter, hash(datetime.datetime.now()), smooths, fillPct)
         if result:
-          print("world", total_counter, "fillPct", fillPct, "smooths", smooths)
           param_counter += 1
           total_counter += 1
 
@@ -57,12 +60,15 @@ def main():
   curr_dir = os.getcwd()
   print(curr_dir)
 
+  """
   # zip files
-  zipFilesInDir(curr_dir, 'Generated Worlds.zip', is_world)
-  zipFilesInDir(curr_dir, 'Generated Grids.zip', is_grid)
-  zipFilesInDir(curr_dir, 'Generated Paths.zip', is_path)
-  zipFilesInDir(curr_dir, 'Generated Difficulties.zip', is_difficulty)
-  zipFilesInDir(curr_dir, 'Generated Pgms.zip', is_pgm)
+  zipFilesInDir(curr_dir, 'data/world_files/Generated Worlds.zip', is_world)
+  zipFilesInDir(curr_dir, 'data/grid_files/Generated Grids.zip', is_grid)
+  zipFilesInDir(curr_dir, 'data/path_files/Generated Paths.zip', is_path)
+  zipFilesInDir(curr_dir, 'data/diff_files/Generated Difficulties.zip', is_difficulty)
+  zipFilesInDir(curr_dir, 'data/pgm_files/Generated Pgms.zip', is_pgm)
+  zipFilesInDir(curr_dir, 'data/yaml_files/Generated Yamls.zip', is_yaml)
+  """
 
 
 if __name__ == "__main__":
