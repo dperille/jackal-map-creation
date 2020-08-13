@@ -1,14 +1,13 @@
 class YamlWriter():
   
-  def __init__(self, filename, image_file):
+  def __init__(self, filename, iteration):
     self.file = open(filename, "w")
-    self.image_file = image_file
-    self.arguments = (image_file, 0.1, 0.0, 0.0, 0.0)
-    with open("yaml_template.txt") as f:
-      self.yaml_temp = f.read()
+    self.iteration = iteration
+    self.yaml_temp ="image: map_pgm_%d.pgm\nresolution: 0.15\norigin: [-3.75, 0.0, 0]\noccupied_thresh: 0.50\nfree_thresh: 0.50\nnegate: 0"
+
+    
 
   def write(self):
-    self.file.write(self.yaml_temp % self.arguments)
-    print(self.yaml_temp % self.arguments)
+    self.file.write(self.yaml_temp % self.iteration)
   
 

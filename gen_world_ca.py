@@ -700,7 +700,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=30, cols=40, showM
     pgm_writer()
 
     # write metadata to yaml file
-    yw = YamlWriter(yaml_file, pgm_file)
+    yw = YamlWriter(yaml_file, iteration)
     yw.write()
 
 
