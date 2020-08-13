@@ -14,12 +14,19 @@ class PGMWriter():
 
         # define the width  (columns) and height (rows) of your image
         width = self.rows
-        height = self.cols
+        height = self.cols + 3
 
         buff=array.array('B')
 
+        # add 3 extra columns of open space at the end
+        for r in range(self.rows):
+            buff.append(255)
+            buff.append(255)
+            buff.append(255)
+
+        # write the actual obstacles
         for c in range(self.cols - 1, -1, -1):
-            for r in range(self.rows):
+            for r in range(self.rows - 1, -1, -1):
                 # add the containment wall
                 if c < self.contain_wall_cylinders:
                     if r == 0 or r == self.rows - 1:
