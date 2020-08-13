@@ -10,9 +10,10 @@ import numpy as np
 import difficulty_quant
 from difficulty_quant import DifficultyMetrics
 from pgm_writer import PGMWriter
+from yaml_writer import YamlWriter
 
 
-def_kernel_size = 4
+def_kernel_size = 5 # to account for Jackal's inflation radius
 
 class ObstacleMap():
   def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
@@ -383,13 +384,13 @@ class AStarSearch:
               node.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
 
               # distance from start + distance to end + factor to penalize cells close to walls
-              node.f = node.g + node.h + (1 / dist_map[child.r][child.c])
+              node.f = node.g + node.h + (0.25 / dist_map[child.r][child.c])
 
         # if child is not yet in the unprocessed list, add it
         if not child_in_openset:
           child.g = child_g
           child.h = math.sqrt(((child.r - end_node.r) ** 2) + ((child.c - end_node.c) ** 2))
-          child.f = child.g + child.f + (1 / dist_map[child.r][child.c])
+          child.f = child.g + child.f + (0.25 / dist_map[child.r][child.c])
           not_visited.append(child)
 
   # generate the path from start to end
@@ -583,15 +584,16 @@ class Input:
     self.root.destroy()
     
 
-def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showMetrics=0):
+def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=30, cols=40, showMetrics=1):
 
     # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
 
-    world_file = "world_" + str(iteration) + ".world"
-    grid_file = "grid_" + str(iteration) + ".npy"
-    path_file = "path_" + str(iteration) + ".npy"
-    diff_file = "difficulties_" + str(iteration) + ".npy"
-    pgm_file = "map_pgm_" + str(iteration) + ".pgm"
+    world_file = "data/world_files/world_" + str(iteration) + ".world"
+    grid_file = "data/grid_files/grid_" + str(iteration) + ".npy"
+    path_file = "data/path_files/path_" + str(iteration) + ".npy"
+    diff_file = "data/diff_files/difficulties_" + str(iteration) + ".npy"
+    pgm_file = "data/pgm_files/map_pgm_" + str(iteration) + ".pgm"
+    yaml_file = "data/yaml_files/yaml_" + str(iteration) + ".yaml"
 
     # get user parameters, if provided
     # inputWindow = Input()
@@ -697,8 +699,12 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showM
     pgm_writer = PGMWriter(obstacle_map, contain_wall_cylinders, pgm_file)
     pgm_writer()
 
+    # write metadata to yaml file
+    yw = YamlWriter(yaml_file, pgm_file)
+    yw.write()
 
-    """
+
+    
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, path, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
@@ -708,9 +714,9 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.35, rows=25, cols=50, showM
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
-    """
+    
         
     return True # path found
 
 if __name__ == "__main__":
-    main()
+    main(iteration = -1)
