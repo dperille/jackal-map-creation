@@ -43,13 +43,14 @@ def zipFilesInDir(dirName, zipFileName, filter):
 def main():
   total_counter = 0
 
-  # fill percent from 0.10 to 0.30, interval 0.025 (10 levels)
-  for i in range(10):
+  # fill percent from 0.10 to 0.30, interval 0.05 (5 levels)
+  for i in range(5):
     fillPct = (i * 0.025) + 0.10
-    # smooth iterations from 2 to 5 (4 levels)
-    for smooths in range(2, 6):
+    # smooth iterations from 2 to 6 (5 levels)
+    for smooths in range(2, 7):
       param_counter = 0
-      while param_counter < 1:
+      while param_counter < 10:
+	print("_________________________________________________________")
 	print("world", total_counter, "fillPct", fillPct, "smooths", smooths)
         result = gen_world_ca.main(total_counter, hash(datetime.datetime.now()), smooths, fillPct)
         if result:

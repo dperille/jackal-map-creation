@@ -613,18 +613,35 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
 
     # get map from the obstacle map generator
     obstacle_map = obMapGen.getMap()
+
+    """
+    # show initial obstacle map ########################
+    plt.imshow(obstacle_map, cmap='Greys', interpolation='nearest')
+    plt.show()
+    """
     
     # generate jackal's map from the obstacle map & ensure connectivity
     jMapGen = JackalMap(obstacle_map, def_kernel_size)
     startRegion = jMapGen.biggestLeftRegion()
     endRegion = jMapGen.biggestRightRegion()
-    
+
+
+    """
+    # show initial jackal map ########################
+    plt.imshow(jMapGen._jackalMapFromObstacleMap(5), cmap='Greys', interpolation='nearest')
+    plt.show()
+    """
 
     cleared_coords = jMapGen.connectRegions(startRegion, endRegion)
 
+    # throw out any maps that don't have a path ######################
+    if len(cleared_coords) != 0:
+      return
+
     # get the final jackal map and update the obstacle map
     jackal_map = jMapGen.getMap()
-    obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size)
+
+    # obstacle_map = obMapGen.updateObstacleMap(cleared_coords, def_kernel_size) ##############
 
     # write map to .world file
     cyl_radius = 0.075
@@ -702,9 +719,9 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     # write metadata to yaml file
     yw = YamlWriter(yaml_file, iteration)
     yw.write()
-
-
     
+
+    """
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, path, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
@@ -714,9 +731,9 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
-    
+    """
         
     return True # path found
 
 if __name__ == "__main__":
-    main(iteration = -1)
+    main(iteration = -1, seed=2422863611227240384, fillPct=0.2, smoothIter=4)
