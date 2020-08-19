@@ -592,8 +592,8 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     grid_file = "data/grid_files/grid_" + str(iteration) + ".npy"
     path_file = "data/path_files/path_" + str(iteration) + ".npy"
     diff_file = "data/diff_files/difficulties_" + str(iteration) + ".npy"
-    pgm_file = "data/pgm_files/map_pgm_" + str(iteration) + ".pgm"
-    yaml_file = "data/yaml_files/yaml_" + str(iteration) + ".yaml"
+    pgm_file = "data/map_files/map_pgm_" + str(iteration) + ".pgm"
+    yaml_file = "data/map_files/yaml_" + str(iteration) + ".yaml"
 
     # get user parameters, if provided
     # inputWindow = Input()
