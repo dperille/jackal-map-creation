@@ -51,7 +51,7 @@ class WorldWriter():
     for r in range(len(self.map)):
       for c in range(len(self.map[0])):
         if self.map[r][c] == 1 and not self._allNeighborsFilled(r, c):
-          self._createCylinder(r_lower - r * self.cyl_radius * 2, c_lower + c * self.cyl_radius * 2, 0, 0, 0, 0, radius=self.cyl_radius)
+          self._createCylinder(r_upper + r * self.cyl_radius * 2, c_lower + c * self.cyl_radius * 2, 0, 0, 0, 0, radius=self.cyl_radius)
 
 
     # write .world middle boilerplate
