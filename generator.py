@@ -45,7 +45,7 @@ def main():
 
   # fill percent from 0.10 to 0.30, interval 0.05 (5 levels)
   for i in range(5):
-    fillPct = (i * 0.025) + 0.10
+    fillPct = (i * 0.05) + 0.10
     # smooth iterations from 2 to 6 (5 levels)
     for smooths in range(2, 7):
       param_counter = 0
