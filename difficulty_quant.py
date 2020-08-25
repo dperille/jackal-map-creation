@@ -1,5 +1,6 @@
 import math
 import Queue
+import numpy as np
   
 class DifficultyMetrics:
   # radius used for density and dispersion
@@ -90,7 +91,7 @@ class DifficultyMetrics:
           break
 
         if self.map[r_curr][c_curr] != 1:
-          dist += 1
+          dist += math.sqrt(move[0] ** 2 + move[1] ** 2)
 
     return dist
 
@@ -266,7 +267,8 @@ class DifficultyMetrics:
 
   # return a list of the normalized average for all metrics
   # metrics are averaged over each point in the path
-  def avg_all_metrics(self):
+  # old version
+  def avg_all_metrics_norm(self):
     result = []
 
     total = 0.0
@@ -320,3 +322,64 @@ class DifficultyMetrics:
 
     return result
 
+  # returns a list of the metrics, averaged over the path
+  # unnormalized
+  def avg_all_metrics(self):
+    result = []
+
+    total = 0.0
+
+    # closest wall
+    total = 0.0
+    for row, col in self.path:
+      total += self._distToClosestWall(row, col)
+    result.append(total / len(self.path))  
+    
+    # average visibility
+    total = 0.0
+    for row, col in self.path:
+      total += self._avgVisCell(row, col)
+    result.append(total / len(self.path)) 
+
+    # dispersion
+    total = 0.0
+    for row, col in self.path:
+      total += self._cellDispersion(row, col, self.radius)
+    result.append(total / len(self.path))
+
+    # characteristic dimension
+    total = 0.0
+    char_dim_grid = self.characteristic_dimension()
+    for row, col in self.path:
+      total += char_dim_grid[row][col]
+    result.append(total / len(self.path))
+
+    # tortuosity
+    tort = self.tortuosity()
+    result.append(tort)
+
+    return result
+
+
+def load_data(cspace_file, path_file):
+  cspace_grid = np.load(cspace_file)
+  path = np.load(path_file)
+
+  return cspace_grid, path
+
+# load all c-spaces and paths, calculate metrics, and save
+def main(num_files=300):
+  dir_name = "dataset/"
+  path_file = "path_files/path_%d.npy"
+  cspace_file = "cspace_files/cspace_%d.npy"
+  metrics_file = "metrics_files/metrics_%d.npy"
+  radius = 3
+  for i in range(num_files):
+    cspace, path = load_data(dir_name + cspace_file % i, dir_name + path_file % i)
+    diffs = DifficultyMetrics(cspace, path, radius)
+
+    metrics = np.asarray(diffs.avg_all_metrics())
+    np.save(dir_name + metrics_file % i, metrics)
+    
+if __name__ == "__main__":
+  main()

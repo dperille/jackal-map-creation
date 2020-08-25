@@ -603,12 +603,12 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
 
     # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
 
-    world_file = "data/world_files/world_" + str(iteration) + ".world"
-    grid_file = "data/grid_files/grid_" + str(iteration) + ".npy"
-    path_file = "data/path_files/path_" + str(iteration) + ".npy"
-    diff_file = "data/diff_files/difficulties_" + str(iteration) + ".npy"
-    pgm_file = "data/map_files/map_pgm_" + str(iteration) + ".pgm"
-    yaml_file = "data/map_files/yaml_" + str(iteration) + ".yaml"
+    world_file = "test_data/world_files/world_" + str(iteration) + ".world"
+    grid_file = "test_data/grid_files/grid_" + str(iteration) + ".npy"
+    path_file = "test_data/path_files/path_" + str(iteration) + ".npy"
+    diff_file = "test_data/metrics_files/metrics_" + str(iteration) + ".npy"
+    pgm_file = "test_data/map_files/map_pgm_" + str(iteration) + ".pgm"
+    yaml_file = "test_data/map_files/yaml_" + str(iteration) + ".yaml"
 
     # get user parameters, if provided
     # inputWindow = Input()
@@ -621,7 +621,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
                   "cols" : cols,
                   "showMetrics" : showMetrics }
 
-    # create 25x25 world generator and run smoothing iterations
+    # create world generator and run smoothing iterations
     print("Seed: %d" % inputDict["seed"])
     obMapGen = ObstacleMap(inputDict["rows"], inputDict["cols"], inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
     obMapGen()
@@ -738,7 +738,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     
         
     return True # path found
-
+    
 
 if __name__ == "__main__":
     main(iteration = -1, seed=2422863611227240384, fillPct=0.2, smoothIter=4)

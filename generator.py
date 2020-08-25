@@ -40,16 +40,17 @@ def zipFilesInDir(dirName, zipFileName, filter):
           zipObj.write(filePath, basename(filePath))
 
 
+# generates dataset of 300 worlds
 def main():
   total_counter = 0
 
-  # fill percent from 0.10 to 0.30, interval 0.05 (5 levels)
-  for i in range(5):
-    fillPct = (i * 0.05) + 0.10
-    # smooth iterations from 2 to 6 (5 levels)
-    for smooths in range(2, 7):
+  # fill percent from 0.15 to 0.30, interval 0.05 (4 levels)
+  for i in range(4):
+    fillPct = (i * 0.05) + 0.15
+    # smooth iterations from 2 to 4 (3 levels)
+    for smooths in range(2, 5):
       param_counter = 0
-      while param_counter < 10:
+      while param_counter < 25:
 	print("_________________________________________________________")
 	print("world", total_counter, "fillPct", fillPct, "smooths", smooths)
         result = gen_world_ca.main(total_counter, hash(datetime.datetime.now()), smooths, fillPct)
@@ -57,11 +58,11 @@ def main():
           param_counter += 1
           total_counter += 1
 
+  """
   # get current directory
   curr_dir = os.getcwd()
   print(curr_dir)
 
-  """
   # zip files
   zipFilesInDir(curr_dir, 'data/world_files/Generated Worlds.zip', is_world)
   zipFilesInDir(curr_dir, 'data/grid_files/Generated Grids.zip', is_grid)
