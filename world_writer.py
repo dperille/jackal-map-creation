@@ -1,3 +1,4 @@
+import numpy as np
 # define boilerplate code needed to write to .world file
 with open("./world-boilerplate/world_boiler_start.txt") as f:
       world_boiler_start = f.read()
@@ -10,6 +11,8 @@ with open("./world-boilerplate/cylinder_define.txt") as f:
 with open("./world-boilerplate/cylinder_place.txt") as f:
       cylinder_place = f.read()
 
+wall_rgb = [0.152, 0.379, 0.720]
+obs_rgb = [0.648, 0.192, 0.192]
 
 class WorldWriter():
 
@@ -35,14 +38,14 @@ class WorldWriter():
     # create the back containment wall
     r_coord = r_lower
     while r_coord >= r_upper:
-      self._createCylinder(r_coord, c_lower, 0, 0, 0, 0, radius=self.cyl_radius)
+      self._createCylinder(r_coord, c_lower, 0, 0, 0, 0, radius=self.cyl_radius, rgb=wall_rgb)
       r_coord -= self.cyl_radius * 2
 
     # create the upper and lower containment walls
     c_coord = c_lower + self.cyl_radius * 2
     while c_coord <= c_upper:
-      self._createCylinder(r_lower, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
-      self._createCylinder(r_upper, c_coord, 0, 0, 0, 0, radius=self.cyl_radius)
+      self._createCylinder(r_lower, c_coord, 0, 0, 0, 0, radius=self.cyl_radius, rgb=wall_rgb)
+      self._createCylinder(r_upper, c_coord, 0, 0, 0, 0, radius=self.cyl_radius, rgb=wall_rgb)
       c_coord += self.cyl_radius * 2
 
 
@@ -51,7 +54,10 @@ class WorldWriter():
     for r in range(len(self.map)):
       for c in range(len(self.map[0])):
         if self.map[r][c] == 1 and not self._allNeighborsFilled(r, c):
-          self._createCylinder(r_upper + r * self.cyl_radius * 2, c_lower + c * self.cyl_radius * 2, 0, 0, 0, 0, radius=self.cyl_radius)
+          if r == 0 or r == len(self.map) - 1:
+            self._createCylinder(r_upper + r * self.cyl_radius * 2, c_lower + c * self.cyl_radius * 2, 0, 0, 0, 0, radius=self.cyl_radius, rgb=wall_rgb)
+          else:
+            self._createCylinder(r_upper + r * self.cyl_radius * 2, c_lower + c * self.cyl_radius * 2, 0, 0, 0, 0, radius=self.cyl_radius, rgb=obs_rgb)
 
 
     # write .world middle boilerplate
@@ -84,9 +90,9 @@ class WorldWriter():
   def _writeStarterBoiler(self):
     self.file.write(world_boiler_start)
 
-  def _createCylinder(self, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius):
+  def _createCylinder(self, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius, rgb):
     self.file.write(cylinder_define % (
-        self.numCylinders, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius, radius
+        self.numCylinders, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius, radius, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1], rgb[2]
     ))
     self.file.write("\n")
     
@@ -114,4 +120,3 @@ class WorldWriter():
 
   def getShifts(self):
     return self.r_shift, self.c_shift
-   
