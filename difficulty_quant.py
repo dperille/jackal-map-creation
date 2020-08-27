@@ -368,8 +368,8 @@ def load_data(cspace_file, path_file):
   return cspace_grid, path
 
 # load all c-spaces and paths, calculate metrics, and save
-def main(num_files=300):
-  dir_name = "dataset/"
+def main(num_files=10):
+  dir_name = "phys_data/"
   path_file = "path_files/path_%d.npy"
   cspace_file = "cspace_files/cspace_%d.npy"
   metrics_file = "metrics_files/metrics_%d.npy"

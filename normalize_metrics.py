@@ -44,22 +44,23 @@ def save_norm_metrics(dir_name, metrics_arr):
 # loads all metrics files, normalizes metrics, and saves to directory
 def main():
   # load files
-  metrics_arr = load_metrics("dataset/metrics_files/", 300)
+  phys_arr = load_metrics("phys_data/metrics_files/", 10)
+  dataset_arr = load_metrics("dataset/metrics_files/", 300)
 
   # print min/max
   print('MINIMUMS')
-  print(np.amin(metrics_arr, axis=0))
+  print(np.amin(phys_arr, axis=0))
   print('MAXIMUMS')
-  print(np.amax(metrics_arr, axis=0))
+  print(np.amax(phys_arr, axis=0))
 
   # get the means and standard devs
-  means, stds = calc_stats(metrics_arr)
+  means, stds = calc_stats(dataset_arr)
 
   # normalize metrics
-  metrics_arr = normalize_all(metrics_arr, means, stds)
+  metrics_arr = normalize_all(phys_arr, means, stds)
 
   # save to files
-  save_norm_metrics("dataset/norm_metrics_files/", metrics_arr)
+  save_norm_metrics("phys_data/norm_metrics_files/", phys_arr)
 
 if __name__ == "__main__":
   main()

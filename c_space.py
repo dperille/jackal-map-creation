@@ -15,4 +15,4 @@ def create_cspace_files(obs_map_dir, num_files, cspace_dir, radius):
         np.save(output_file, cspace_grid)
 
 if __name__ == "__main__":
-    create_cspace_files("dataset/grid_files/", 300, "dataset/cspace_files/", 2)
+    create_cspace_files("phys_data/grid_files/", 10, "phys_data/cspace_files/", 2)
