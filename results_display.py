@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-combined_results = np.load('./combined_results_stats/combined_penalty40.npy')
-eband_results = np.load('./eband_results_stats/eband_only_penalty40.npy')
-dwa_results = np.load('./dwa_results_stats/dwa_only_penalty40.npy')
+combined_results = np.load('./combined_results_stats/combined_penalty30.npy')
+eband_results = np.load('./eband_results_stats/eband_only_penalty30.npy')
+dwa_results = np.load('./dwa_results_stats/dwa_only_penalty30.npy')
 
 class Env:
     # combined, eband, dwa are all len(2) lists -- first element is mean, second is std
@@ -59,16 +59,33 @@ for num in range(len(sorted_results)):
     dwa_mean[num] = sorted_results[num].dwa[0]
     dwa_std[num] = sorted_results[num].dwa[1]
 
-plt.plot(combined_mean)
-plt.fill_between(np.arange(0, 300), combined_mean + combined_std, combined_mean - combined_std, alpha=0.45)
+print("E-Band average std: %f" % np.mean(eband_std))
+print("DWA average std: %f" % np.mean(dwa_std))
+
+xlabel = 'Environment number'
+ylabel = 'Normalized traversal time'
+ylim = 10
+
+plt.plot(combined_mean, color='blue')
+plt.fill_between(np.arange(0, 300), combined_mean + combined_std, combined_mean - combined_std, alpha=0.31, color='blue')
+plt.xlabel(xlabel)
+plt.ylabel(ylabel)
+plt.ylim(0, ylim)
+plt.title("Combined")
 plt.show()
 
-plt.plot(eband_mean)
-plt.fill_between(np.arange(0, 300), eband_mean + eband_std, eband_mean - eband_std, alpha=0.45)
+plt.plot(eband_mean, color='red')
+plt.fill_between(np.arange(0, 300), eband_mean + eband_std, eband_mean - eband_std, alpha=0.31, color='red')
+plt.xlabel(xlabel)
+plt.ylabel(ylabel)
+plt.ylim(0, ylim)
+plt.title("E-Band")
 plt.show()
 
-plt.plot(dwa_mean)
-plt.fill_between(np.arange(0, 300), dwa_mean + dwa_std, dwa_mean - dwa_std, alpha=0.45)
-plt.show()
-
+plt.plot(dwa_mean, color='green')
+plt.fill_between(np.arange(0, 300), dwa_mean + dwa_std, dwa_mean - dwa_std, alpha=0.31, color=(0.172, 0.61, 0.29))
+plt.xlabel(xlabel)
+plt.ylabel(ylabel)
+plt.ylim(0, ylim)
+plt.title("DWA")
 plt.show()
