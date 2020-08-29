@@ -62,8 +62,15 @@ for num in range(len(sorted_results)):
 print("E-Band average std: %f" % np.mean(eband_std))
 print("DWA average std: %f" % np.mean(dwa_std))
 
+print("E-Band average mean: %f" % np.mean(eband_mean))
+print("DWA average mean: %f" % np.mean(dwa_mean))
+
+plt.rcParams.update({'font.size': 23, 'font.family': 'Times New Roman'})
+plt.rcParams['font.family'] = 'serif'
+plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
+
 xlabel = 'Environment number'
-ylabel = 'Normalized traversal time'
+ylabel = 'Difficulty level\n(normalized traversal time)'
 ylim = 10
 
 plt.plot(combined_mean, color='blue')
@@ -72,20 +79,19 @@ plt.xlabel(xlabel)
 plt.ylabel(ylabel)
 plt.ylim(0, ylim)
 plt.title("Combined")
+plt.tick_params(labelsize=16)
 plt.show()
 
 plt.plot(eband_mean, color='red')
 plt.fill_between(np.arange(0, 300), eband_mean + eband_std, eband_mean - eband_std, alpha=0.31, color='red')
-plt.xlabel(xlabel)
-plt.ylabel(ylabel)
 plt.ylim(0, ylim)
 plt.title("E-Band")
+plt.tick_params(labelsize=16)
 plt.show()
 
 plt.plot(dwa_mean, color='green')
 plt.fill_between(np.arange(0, 300), dwa_mean + dwa_std, dwa_mean - dwa_std, alpha=0.31, color=(0.172, 0.61, 0.29))
-plt.xlabel(xlabel)
-plt.ylabel(ylabel)
 plt.ylim(0, ylim)
 plt.title("DWA")
+plt.tick_params(labelsize=16)
 plt.show()
