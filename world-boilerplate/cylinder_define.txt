@@ -40,6 +40,10 @@
               <length>1</length>
             </cylinder>
           </geometry>
+	  <material>
+              <ambient>%f %f %f 1</ambient>
+	      <diffuse>%f %f %f 1</diffuse>
+          </material>
           <material>
             <script>
               <name>Gazebo/Grey</name>
