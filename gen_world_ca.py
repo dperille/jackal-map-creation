@@ -605,6 +605,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
 
     world_file = "test_data/world_files/world_" + str(iteration) + ".world"
     grid_file = "test_data/grid_files/grid_" + str(iteration) + ".npy"
+    cspace_file = "test_data/grid_files/cspace_" + str(iteration) + ".npy"
     path_file = "test_data/path_files/path_" + str(iteration) + ".npy"
     diff_file = "test_data/metrics_files/metrics_" + str(iteration) + ".npy"
     pgm_file = "test_data/map_files/map_pgm_" + str(iteration) + ".pgm"
@@ -704,6 +705,10 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     # save occupancy grid
     grid_arr = np.asarray(obstacle_map)
     np.save(grid_file, grid_arr)
+
+    # save cspace
+    cspace_grid = np.asarray(jackal_map)
+    np.save(cspace_file, cspace_grid)
 
     # save path
     path_arr = np.asarray(path)
