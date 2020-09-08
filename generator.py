@@ -3,7 +3,9 @@ import datetime
 
 
 # generates dataset of 300 worlds
+# 12 sets of parameters, 25 each set
 def main():
+  set_size = 25
   total_counter = 0
 
   # fill percent from 0.15 to 0.30, interval 0.05 (4 levels)
@@ -12,10 +14,10 @@ def main():
     # smooth iterations from 2 to 4 (3 levels)
     for smooths in range(2, 5):
       param_counter = 0
-      while param_counter < 25:
+      while param_counter < set_size:
 	print("_________________________________________________________")
 	print("world", total_counter, "fillPct", fillPct, "smooths", smooths)
-        result = gen_world_ca.main(total_counter, hash(datetime.datetime.now()), smooths, fillPct)
+        result = gen_world_ca.main(total_counter, hash(datetime.datetime.now()), smooths, fillPct, showMetrics=0)
         if result:
           param_counter += 1
           total_counter += 1
