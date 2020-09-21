@@ -50,10 +50,10 @@ class PGMWriter():
 
 
         # define PGM Header
-        pgmHeader = 'P5' + '\n' + str(width) + '  ' + str(height) + '  ' + str(255) + '\n'
+        pgm_header = 'P5' + '\n' + str(width) + '  ' + str(height) + '  ' + str(255) + '\n'
 
         # write the header to the file
-        fout.write(pgmHeader)
+        fout.write(pgm_header)
 
         # write the data to the file 
         buff.tofile(fout)

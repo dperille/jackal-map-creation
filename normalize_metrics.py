@@ -3,7 +3,7 @@ import numpy as np
 # metrics_dir is the directory storing metrics in npy form
 # appends all metrics into a 2D NumPy array and returns
 def load_metrics(metrics_dir, num_files):
-  file_name = "metrics_%d.npy"
+  file_name = 'metrics_%d.npy'
   result = []
 
   # load all arrays and append to result
@@ -36,7 +36,7 @@ def normalize_all(metrics_arr, means, stds):
 
 # save all metrics in metrics_arr to dir_name directory
 def save_norm_metrics(dir_name, metrics_arr):
-  file_name = "norm_metrics_%d.npy"
+  file_name = 'norm_metrics_%d.npy'
 
   for i in range(len(metrics_arr)):
     np.save(dir_name + file_name % i, metrics_arr[i])
@@ -44,8 +44,8 @@ def save_norm_metrics(dir_name, metrics_arr):
 # loads all metrics files, normalizes metrics, and saves to directory
 def main():
   # load files
-  phys_arr = load_metrics("phys_data/metrics_files/", 10)
-  dataset_arr = load_metrics("dataset/metrics_files/", 300)
+  phys_arr = load_metrics('phys_data/metrics_files/', 10)
+  dataset_arr = load_metrics('dataset/metrics_files/', 300)
 
   # print min/max
   print('MINIMUMS')
@@ -60,7 +60,7 @@ def main():
   metrics_arr = normalize_all(phys_arr, means, stds)
 
   # save to files
-  save_norm_metrics("phys_data/norm_metrics_files/", phys_arr)
+  save_norm_metrics('phys_data/norm_metrics_files/', phys_arr)
 
 if __name__ == "__main__":
   main()
