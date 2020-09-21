@@ -265,14 +265,14 @@ def load_data(cspace_file, path_file):
 
 # load all c-spaces and paths, calculate metrics, and save
 def main(num_files=10):
-  dir_name = "phys_data/"
-  path_file = "path_files/path_%d.npy"
-  cspace_file = "cspace_files/cspace_%d.npy"
-  metrics_file = "metrics_files/metrics_%d.npy"
-  radius = 3
+  dir_name = 'phys_data/'
+  path_file = 'path_files/path_%d.npy'
+  cspace_file = 'cspace_files/cspace_%d.npy'
+  metrics_file = 'metrics_files/metrics_%d.npy'
+  disp_radius = 3
   for i in range(num_files):
     cspace, path = load_data(dir_name + cspace_file % i, dir_name + path_file % i)
-    diffs = DifficultyMetrics(cspace, path, radius)
+    diffs = DifficultyMetrics(cspace, path, disp_radius)
 
     metrics = np.asarray(diffs.avg_all_metrics())
     np.save(dir_name + metrics_file % i, metrics)
