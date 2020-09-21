@@ -3,7 +3,7 @@ import Queue
 import numpy as np
   
 class DifficultyMetrics:
-  # radius used for density and dispersion
+  # radius used for dispersion
   def __init__(self, map, path, radius):
     self.map = map
     self.rows = len(map)
@@ -11,17 +11,6 @@ class DifficultyMetrics:
     self.axes = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
     self.path = path
     self.radius = radius
-
-  def density(self):
-    dens = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        if self.map[r][c] == 0:
-          dens[r][c] = self._densityOfTile(r, c, self.radius)
-        else:
-          dens[r][c] = (self.radius * 2) ** 2
-
-    return dens
 
   def closestWall(self):
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
@@ -183,20 +172,10 @@ class DifficultyMetrics:
           total_vis += this_vis
           num_axes += 1
     
-    return total_vis / num_axes
+    return total_vis / num_axes 
 
 
-  def _densityOfTile(self, row, col, radius):
-    count = 0
-    for r in range(row-radius, row+radius+1):
-      for c in range(col-radius, col+radius+1):
-        if r >= 0 and r < self.rows and c >= 0 and c < self.cols and (r!=row or c!=col):
-          count += self.map[r][c]
-
-    return count   
-
-
-  # simple bounds check
+  # bounds check
   def _isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
@@ -207,7 +186,6 @@ class DifficultyMetrics:
     first_wrapper = self.Wrapper(0, r, c)
     pq.put(first_wrapper)
     visited = {(r, c) : first_wrapper}
-
 
     while not pq.empty():
       point = pq.get()
