@@ -8,7 +8,7 @@ class DifficultyMetrics:
     self.map = map
     self.rows = len(map)
     self.cols = len(map[0])
-    self.axes = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)]
+    self.axes = [(0, 1), (1, 1), (1, 0), (1, -1)] # vertical, horizontal, and 2 diagonals
     self.path = path
     self.radius = radius
 
@@ -41,7 +41,6 @@ class DifficultyMetrics:
 
   def characteristic_dimension(self):
     cdr = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    my_axes = [(0, 1), (1, 1), (1, 0), (1, -1)]
     for r in range(self.rows):
       for c in range(self.cols):
         if self.map[r][c] == 1:
@@ -277,6 +276,6 @@ def main(num_files=10):
 
     metrics = np.asarray(diffs.avg_all_metrics())
     np.save(dir_name + metrics_file % i, metrics)
-        
+      
 if __name__ == "__main__":
   main()
