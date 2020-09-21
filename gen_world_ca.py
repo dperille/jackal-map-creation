@@ -1,13 +1,13 @@
 import random
-import sys
 import datetime
 import Queue
 import math
+
 import matplotlib.pyplot as plt
 import Tkinter as tk
-from world_writer import WorldWriter
 import numpy as np
-import difficulty_quant
+
+from world_writer import WorldWriter
 from difficulty_quant import DifficultyMetrics
 from pgm_writer import PGMWriter
 from yaml_writer import YamlWriter
@@ -178,7 +178,7 @@ class JackalMap:
     if self.regionsAreConnected(regionA, regionB):
       return coords_cleared
 
-    print("Connecting separate regions")
+    print('Connecting separate regions')
     rightmostA = (-1, -1)
     leftmostB = (-1, self.cols - 1)
 
@@ -219,12 +219,12 @@ class JackalMap:
   def getPath(self, points, dist_map):
     num_points = len(points)
     if num_points < 2:
-      raise Exception("Path needs at least two points")
+      raise Exception('Path needs at least two points')
     
     # check if any points aren't empty
     for point in points:
       if self.map[point[0]][point[1]] == 1:
-        raise Exception("The point (%d, %d) is a wall" % (point[0], point[1]))
+        raise Exception('The point (%d, %d) is a wall' % (point[0], point[1]))
 
     overall_path = []
     for n in range(num_points - 1):
@@ -280,11 +280,11 @@ class JackalMap:
 
 
 class AStarSearch:
-  def __init__(self, map, infl_rad_cells): ######################## added infl_rad_cells
+  def __init__(self, map, infl_rad_cells):
     self.map = map
     self.map_rows = len(map)
     self.map_cols = len(map[0])
-    self.infl_rad_cells = infl_rad_cells ########################
+    self.infl_rad_cells = infl_rad_cells
 
   def __call__(self, start_coord, end_coord, dist_map):
     # limit turns to 45 degrees
@@ -429,10 +429,7 @@ class Node:
  
 
 class Display:
-  def __init__(self, map, path, map_with_path, jackal_map, jackal_map_with_path, density_radius, dispersion_radius):
-    # TODO: take out density radius
-    self.map = map
-    self.path = path
+  def __init__(self, map_with_path, jackal_map, jackal_map_with_path, dispersion_radius):
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
     self.jackal_map_with_path = jackal_map_with_path
@@ -441,10 +438,10 @@ class Display:
   
     diff = DifficultyMetrics(jackal_map, path, dispersion_radius)
     self.metrics = {
-      "closestDist": diff.closestWall(),
-      "avgVis": diff.avgVisibility(),
-      "dispersion": diff.dispersion(),
-      "char_dimension": diff.characteristic_dimension(),
+      'closestDist': diff.closestWall(),
+      'avgVis': diff.avgVisibility(),
+      'dispersion': diff.dispersion(),
+      'char_dimension': diff.characteristic_dimension(),
     }
 
   def __call__(self):
@@ -454,41 +451,41 @@ class Display:
     map_plot = ax[0][0].imshow(self.map_with_path, cmap='Greys', interpolation='nearest')
     map_plot.axes.get_xaxis().set_visible(False)
     map_plot.axes.get_yaxis().set_visible(False)
-    ax[0][0].set_title("Map and A* path")
+    ax[0][0].set_title('Map and A* path')
 
     # closest wall distance
-    dists = self.metrics.get("closestDist")
+    dists = self.metrics.get('closestDist')
     dist_plot = ax[0][1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
     dist_plot.axes.get_xaxis().set_visible(False)
     dist_plot.axes.get_yaxis().set_visible(False)
-    ax[0][1].set_title("Distance to \nclosest obstacle")
+    ax[0][1].set_title('Distance to \nclosest obstacle')
     dist_cbar = fig.colorbar(dist_plot, ax=ax[0][1], orientation='horizontal')
     dist_cbar.ax.tick_params(labelsize='xx-small')
 
     # characteristic dimension
-    cdr = self.metrics.get("char_dimension")
+    cdr = self.metrics.get('char_dimension')
     cdr_plot = ax[0][2].imshow(cdr, cmap='binary', interpolation='nearest')
     cdr_plot.axes.get_xaxis().set_visible(False)
     cdr_plot.axes.get_yaxis().set_visible(False)
-    ax[0][2].set_title("Char dimension")
+    ax[0][2].set_title('Char dimension')
     cdr_cbar = fig.colorbar(cdr_plot, ax=ax[0][2], orientation='horizontal')
     cdr_cbar.ax.tick_params(labelsize='xx-small')
 
     # average visibility
-    avgVis = self.metrics.get("avgVis")
+    avgVis = self.metrics.get('avgVis')
     avgVis_plot = ax[1][0].imshow(avgVis, cmap='RdYlGn', interpolation='nearest')
     avgVis_plot.axes.get_xaxis().set_visible(False)
     avgVis_plot.axes.get_yaxis().set_visible(False)
-    ax[1][0].set_title("Average visibility")
+    ax[1][0].set_title('Average visibility')
     avgVis_cbar = fig.colorbar(avgVis_plot, ax=ax[1][0], orientation='horizontal')
     avgVis_cbar.ax.tick_params(labelsize='xx-small')
     
     # dispersion
-    dispersion = self.metrics.get("dispersion")
+    dispersion = self.metrics.get('dispersion')
     disp_plot = ax[1][1].imshow(dispersion, cmap='RdYlGn', interpolation='nearest')
     disp_plot.axes.get_xaxis().set_visible(False)
     disp_plot.axes.get_yaxis().set_visible(False)
-    ax[1][1].set_title("%d-square radius dispersion" % self.dispersion_radius)
+    ax[1][1].set_title('%d-square radius dispersion' % self.dispersion_radius)
     disp_cbar = fig.colorbar(disp_plot, ax=ax[1][1], orientation='horizontal')
     disp_cbar.ax.tick_params(labelsize='xx-small')
 
@@ -496,7 +493,7 @@ class Display:
     jmap_plot = ax[2][0].imshow(self.jackal_map_with_path, cmap='Greys', interpolation='nearest')
     jmap_plot.axes.get_xaxis().set_visible(False)
     jmap_plot.axes.get_yaxis().set_visible(False)
-    ax[2][0].set_title("Jackal navigable map")
+    ax[2][0].set_title('Jackal navigable map')
 
     plt.delaxes(ax[1][2])
     plt.axis('off')
@@ -505,36 +502,36 @@ class Display:
 
 class Input:
   def __init__(self):
-    self.root = tk.Tk(className="Parameters")
+    self.root = tk.Tk(className='Parameters')
 
-    tk.Label(self.root, text="Seed").grid(row=0)
-    tk.Label(self.root, text="Smoothing iterations").grid(row=1)
-    tk.Label(self.root, text="Fill percentage (0 to 1)").grid(row=2)
-    tk.Label(self.root, text="Rows").grid(row=3, column=0)
-    tk.Label(self.root, text="Cols").grid(row=3, column=2)
+    tk.Label(self.root, text='Seed').grid(row=0)
+    tk.Label(self.root, text='Smoothing iterations').grid(row=1)
+    tk.Label(self.root, text='Fill percentage (0 to 1)').grid(row=2)
+    tk.Label(self.root, text='Rows').grid(row=3, column=0)
+    tk.Label(self.root, text='Cols').grid(row=3, column=2)
 
     self.seed = tk.Entry(self.root)
     self.seed.grid(row=0, column=1)
 
     self.smoothIter = tk.Entry(self.root)
-    self.smoothIter.insert(0, "4")
+    self.smoothIter.insert(0, '4')
     self.smoothIter.grid(row=1, column=1)
 
     self.fillPct = tk.Entry(self.root)
-    self.fillPct.insert(0, "0.35")
+    self.fillPct.insert(0,'0.35')
     self.fillPct.grid(row=2, column=1)
 
     self.rows = tk.Entry(self.root)
-    self.rows.insert(0, "25")
+    self.rows.insert(0, '25')
     self.rows.grid(row=3, column=1)
 
     self.cols = tk.Entry(self.root)
-    self.cols.insert(0, "25")
+    self.cols.insert(0, '25')
     self.cols.grid(row=3, column=3)
 
     self.showMetrics = tk.IntVar()
     self.showMetrics.set(True)
-    showMetricsBox = tk.Checkbutton(self.root, text="Show metrics", var=self.showMetrics)
+    showMetricsBox = tk.Checkbutton(self.root, text='Show metrics', var=self.showMetrics)
     showMetricsBox.grid(row=4, column=1)
 
     tk.Button(self.root, text='Run', command=self.get_input).grid(row=5, column=1)
@@ -546,47 +543,47 @@ class Input:
 
     # get seed
     if len(self.seed.get()) == 0:
-      self.inputs["seed"] = hash(datetime.datetime.now())
+      self.inputs['seed'] = hash(datetime.datetime.now())
     else:
       try:
-        self.inputs["seed"] = int(self.seed.get())
+        self.inputs['seed'] = int(self.seed.get())
       except:
-        self.inputs["seed"] = hash(self.seed.get())
+        self.inputs['seed'] = hash(self.seed.get())
 
     # get number of smoothing iterations
     default_smooth_iter = 4
     try:
-      self.inputs["smoothIter"] = int(self.smoothIter.get())
+      self.inputs['smoothIter'] = int(self.smoothIter.get())
     except:
-      self.inputs["smoothIter"] = default_smooth_iter
+      self.inputs['smoothIter'] = default_smooth_iter
 
     # get random fill percentage
     default_fill_pct = 0.35
     try:
-      self.inputs["fillPct"] = float(self.fillPct.get())
+      self.inputs['fillPct'] = float(self.fillPct.get())
     except:
-      self.inputs["fillPct"] = default_fill_pct
+      self.inputs['fillPct'] = default_fill_pct
 
     # get number of rows
     default_rows = 25
     try:
-      self.inputs["rows"] = int(self.rows.get())
+      self.inputs['rows'] = int(self.rows.get())
     except:
-      self.inputs["rows"] = default_rows
+      self.inputs['rows'] = default_rows
 
     # get number of columns
     default_cols = 25
     try:
-      self.inputs["cols"] = int(self.cols.get())
+      self.inputs['cols'] = int(self.cols.get())
     except:
-      self.inputs["rows"] = default_cols
+      self.inputs['rows'] = default_cols
 
     # get show metrics value
     default_show_metrics = 1
     try:
-      self.inputs["showMetrics"] = self.showMetrics.get()
+      self.inputs['showMetrics'] = self.showMetrics.get()
     except:
-      self.inputs["showMetrics"] = default_show_metrics
+      self.inputs['showMetrics'] = default_show_metrics
       
     self.root.destroy()
     
@@ -658,14 +655,14 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     path = []
     diff_quant = DifficultyMetrics(jackal_map, path, radius=3)
     dist_map = diff_quant.closestWall()
-    print("Points: (%d, 0), (%d, %d)" % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
+    print('Points: (%d, 0), (%d, %d)' % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
     path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
 
     if not path:
-      print("path not found")
+      print('path not found')
       return # path not found, don't use this world
 
-    print("Found path!")
+    print('Found path!')
 
 
     # print start and end points in gazebo coords
@@ -673,7 +670,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     start_c = c_shift
     end_r = r_shift + right_coord_r * cyl_radius * 2
     end_c = len(obstacle_map[0]) * cyl_radius * 2 + c_shift
-    print("Start: (%f, %f) to Goal: (%f, %f)" % (start_r, start_c, end_r, end_c))
+    print('Start: (%f, %f) to Goal: (%f, %f)' % (start_r, start_c, end_r, end_c))
 
     # put paths into matrices to display them
     obstacle_map_with_path = [[obstacle_map[j][i] for i in range(len(obstacle_map[0]))] for j in range(len(obstacle_map))]
@@ -724,8 +721,8 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
 
     """
     # display world and heatmap of distances
-    if inputDict["showMetrics"]:
-      display = Display(obstacle_map, path, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
+    if inputDict['showMetrics']:
+      display = Display(obstacle_map_with_path, jackal_map, jackal_map_with_path, dispersion_radius=3)
       display()
     
     # only show the map itself
