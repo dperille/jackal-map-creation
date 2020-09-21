@@ -12,7 +12,7 @@ class DifficultyMetrics:
     self.path = path
     self.radius = radius
 
-  def closestWall(self):
+  def closest_wall(self):
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
@@ -21,7 +21,7 @@ class DifficultyMetrics:
 
     return dists
 
-  def avgVisibility(self):
+  def avg_visibility(self):
     vis = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):

@@ -290,7 +290,7 @@ class AStarSearch:
 
       # if this node is at end of the path, return
       if curr_node == end_node:
-        return self.returnPath(curr_node)
+        return self.return_path(curr_node)
 
       # get all valid moves (either straight or 45 degree turn)
       valid_moves = []
@@ -361,7 +361,7 @@ class AStarSearch:
           not_visited.append(child)
 
   # generate the path from start to end
-  def returnPath(self, end_node):
+  def return_path(self, end_node):
     path = []
     curr_node = end_node
     while curr_node != None:
@@ -391,13 +391,12 @@ class Display:
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
     self.jackal_map_with_path = jackal_map_with_path
-    self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
     diff = DifficultyMetrics(jackal_map, path, dispersion_radius)
     self.metrics = {
-      'closestDist': diff.closestWall(),
-      'avgVis': diff.avgVisibility(),
+      'closest_dist': diff.closest_wall(),
+      'avg_vis': diff.avg_visibility(),
       'dispersion': diff.dispersion(),
       'char_dimension': diff.characteristic_dimension(),
     }
@@ -412,7 +411,7 @@ class Display:
     ax[0][0].set_title('Map and A* path')
 
     # closest wall distance
-    dists = self.metrics.get('closestDist')
+    dists = self.metrics.get('closest_dist')
     dist_plot = ax[0][1].imshow(dists, cmap='RdYlGn', interpolation='nearest')
     dist_plot.axes.get_xaxis().set_visible(False)
     dist_plot.axes.get_yaxis().set_visible(False)
@@ -430,13 +429,13 @@ class Display:
     cdr_cbar.ax.tick_params(labelsize='xx-small')
 
     # average visibility
-    avgVis = self.metrics.get('avgVis')
-    avgVis_plot = ax[1][0].imshow(avgVis, cmap='RdYlGn', interpolation='nearest')
-    avgVis_plot.axes.get_xaxis().set_visible(False)
-    avgVis_plot.axes.get_yaxis().set_visible(False)
+    avg_vis = self.metrics.get('avg_vis')
+    avg_vis_plot = ax[1][0].imshow(avg_vis, cmap='RdYlGn', interpolation='nearest')
+    avg_vis_plot.axes.get_xaxis().set_visible(False)
+    avg_vis_plot.axes.get_yaxis().set_visible(False)
     ax[1][0].set_title('Average visibility')
-    avgVis_cbar = fig.colorbar(avgVis_plot, ax=ax[1][0], orientation='horizontal')
-    avgVis_cbar.ax.tick_params(labelsize='xx-small')
+    avg_vis_cbar = fig.colorbar(avg_vis_plot, ax=ax[1][0], orientation='horizontal')
+    avg_vis_cbar.ax.tick_params(labelsize='xx-small')
     
     # dispersion
     dispersion = self.metrics.get('dispersion')
@@ -475,9 +474,9 @@ class Input:
     self.smooth_iter.insert(0, '4')
     self.smooth_iter.grid(row=1, column=1)
 
-    self.fillPct = tk.Entry(self.root)
-    self.fillPct.insert(0,'0.35')
-    self.fillPct.grid(row=2, column=1)
+    self.fill_pct = tk.Entry(self.root)
+    self.fill_pct.insert(0,'0.35')
+    self.fill_pct.grid(row=2, column=1)
 
     self.rows = tk.Entry(self.root)
     self.rows.insert(0, '25')
@@ -487,10 +486,10 @@ class Input:
     self.cols.insert(0, '25')
     self.cols.grid(row=3, column=3)
 
-    self.showMetrics = tk.IntVar()
-    self.showMetrics.set(True)
-    showMetricsBox = tk.Checkbutton(self.root, text='Show metrics', var=self.showMetrics)
-    showMetricsBox.grid(row=4, column=1)
+    self.show_metrics = tk.IntVar()
+    self.show_metrics.set(True)
+    show_metrics_box = tk.Checkbutton(self.root, text='Show metrics', var=self.show_metrics)
+    show_metrics_box.grid(row=4, column=1)
 
     tk.Button(self.root, text='Run', command=self.get_input).grid(row=5, column=1)
 
@@ -518,9 +517,9 @@ class Input:
     # get random fill percentage
     default_fill_pct = 0.35
     try:
-      self.inputs['fillPct'] = float(self.fillPct.get())
+      self.inputs['fill_pct'] = float(self.fill_pct.get())
     except:
-      self.inputs['fillPct'] = default_fill_pct
+      self.inputs['fill_pct'] = default_fill_pct
 
     # get number of rows
     default_rows = 25
@@ -539,14 +538,14 @@ class Input:
     # get show metrics value
     default_show_metrics = 1
     try:
-      self.inputs['showMetrics'] = self.showMetrics.get()
+      self.inputs['show_metrics'] = self.show_metrics.get()
     except:
-      self.inputs['showMetrics'] = default_show_metrics
+      self.inputs['show_metrics'] = default_show_metrics
       
     self.root.destroy()
     
 
-def main(iteration=0, seed=0, smooth_iter=4, fillPct=.27, rows=30, cols=30, showMetrics=1):
+def main(iteration=0, seed=0, smooth_iter=4, fill_pct=.27, rows=30, cols=30, show_metrics=1):
 
     world_file = 'test_data/world_files/world_%d.world' % iteration
     grid_file = 'test_data/grid_files/grid_%d.npy' % iteration
@@ -558,51 +557,51 @@ def main(iteration=0, seed=0, smooth_iter=4, fillPct=.27, rows=30, cols=30, show
 
     """
     # get user parameters, if provided
-    inputWindow = Input()
-    inputDict = inputWindow.inputs
+    input_window = Input()
+    input_dict = input_window.inputs
     """
 
-    inputDict = { 'seed' : seed,
+    input_dict = { 'seed' : seed,
                   'smooth_iter': smooth_iter,
-                  'fillPct' : fillPct,
+                  'fill_pct' : fill_pct,
                   'rows' : rows,
                   'cols' : cols,
-                  'showMetrics' : showMetrics }
+                  'show_metrics' : show_metrics }
 
     # create world generator and run smoothing iterations
-    print('Seed: %d' % inputDict['seed'])
-    obMapGen = ObstacleMap(inputDict['rows'], inputDict['cols'], inputDict['fillPct'], inputDict['seed'], inputDict['smooth_iter'])
-    obMapGen()
+    print('Seed: %d' % input_dict['seed'])
+    ob_map_gen = ObstacleMap(input_dict['rows'], input_dict['cols'], input_dict['fill_pct'], input_dict['seed'], input_dict['smooth_iter'])
+    ob_map_gen()
 
     # get map from the obstacle map generator
-    obstacle_map = obMapGen.get_map()
+    obstacle_map = ob_map_gen.get_map()
     
     # generate jackal's map from the obstacle map
-    jMapGen = JackalMap(obstacle_map, jackal_radius)
-    startRegion = jMapGen.biggest_left_region()
-    endRegion = jMapGen.biggest_right_region()
+    jmap_gen = JackalMap(obstacle_map, jackal_radius)
+    start_region = jmap_gen.biggest_left_region()
+    end_region = jmap_gen.biggest_right_region()
 
     # throw out any maps that don't have a path
-    if not jMapGen.regions_connected(startRegion, endRegion):
+    if not jmap_gen.regions_connected(start_region, end_region):
       return
 
     # get the final jackal map and update the obstacle map
-    jackal_map = jMapGen.get_map()
+    jackal_map = jmap_gen.get_map()
 
     # write map to .world file
     cyl_radius = 0.075
     contain_wall_length = 5
     writer = WorldWriter(world_file, obstacle_map, cyl_radius=cyl_radius, contain_wall_length=contain_wall_length)
     contain_wall_cylinders = writer()
-    r_shift, c_shift = writer.getShifts()
+    r_shift, c_shift = writer.getShifts() # TODO: change to snake case
 
     # Generate random start and end points for path
     left_open = []
     right_open = []
     for r in range(len(jackal_map)):
-      if startRegion[r][0] == 1:
+      if start_region[r][0] == 1:
         left_open.append(r)
-      if endRegion[r][len(jackal_map[0])-1] == 1:
+      if end_region[r][len(jackal_map[0])-1] == 1:
         right_open.append(r)
     left_coord_r = left_open[random.randint(0, len(left_open)-1)]
     right_coord_r = right_open[random.randint(0, len(right_open)-1)]
@@ -612,9 +611,9 @@ def main(iteration=0, seed=0, smooth_iter=4, fillPct=.27, rows=30, cols=30, show
     # generate path, if possible
     path = []
     diff_quant = DifficultyMetrics(jackal_map, path, radius=3)
-    dist_map = diff_quant.closestWall()
+    dist_map = diff_quant.closest_wall()
     print('Points: (%d, 0), (%d, %d)' % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
-    path = jMapGen.get_path([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
+    path = jmap_gen.get_path([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
 
     if not path:
       print('path not found')
@@ -679,7 +678,7 @@ def main(iteration=0, seed=0, smooth_iter=4, fillPct=.27, rows=30, cols=30, show
 
     """
     # display world and heatmap of distances
-    if inputDict['showMetrics']:
+    if input_dict['show_metrics']:
       display = Display(obstacle_map_with_path, jackal_map, jackal_map_with_path, dispersion_radius=3)
       display()
     
@@ -694,4 +693,4 @@ def main(iteration=0, seed=0, smooth_iter=4, fillPct=.27, rows=30, cols=30, show
     
 
 if __name__ == "__main__":
-    main(iteration = -1, seed=2422863611227240384, fillPct=0.2, smooth_iter=4)
+    main(iteration = -1, seed=2422863611227240384, fill_pct=0.2, smooth_iter=4)
