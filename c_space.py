@@ -3,8 +3,8 @@ from gen_world_ca import JackalMap
 
 def create_cspace_files(obs_map_dir, num_files, cspace_dir, radius):
     for i in range(num_files):
-        output_file = cspace_dir + "cspace_" + str(i) + ".npy"
-        input_file = obs_map_dir + "grid_" + str(i) + ".npy"
+        output_file = cspace_dir + 'cspace_%d.npy' % i
+        input_file = obs_map_dir + 'grid_%d.npy' % i
 
         obs_map = np.load(input_file)
         jm = JackalMap(obs_map, radius)
@@ -15,4 +15,4 @@ def create_cspace_files(obs_map_dir, num_files, cspace_dir, radius):
         np.save(output_file, cspace_grid)
 
 if __name__ == "__main__":
-    create_cspace_files("phys_data/grid_files/", 10, "phys_data/cspace_files/", 2)
+    create_cspace_files('phys_data/grid_files/', 10, 'phys_data/cspace_files/', 2)

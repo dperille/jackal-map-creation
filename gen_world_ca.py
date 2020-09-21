@@ -593,7 +593,7 @@ def main(iteration=0, seed=0, smooth_iter=4, fill_pct=.27, rows=30, cols=30, sho
     contain_wall_length = 5
     writer = WorldWriter(world_file, obstacle_map, cyl_radius=cyl_radius, contain_wall_length=contain_wall_length)
     contain_wall_cylinders = writer()
-    r_shift, c_shift = writer.getShifts() # TODO: change to snake case
+    r_shift, c_shift = writer.get_shifts()
 
     # Generate random start and end points for path
     left_open = []

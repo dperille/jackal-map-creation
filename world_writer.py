@@ -19,7 +19,7 @@ class WorldWriter():
   def __init__(self, filename, map, cyl_radius, contain_wall_length):
     self.file = open(filename, "w")
     self.map = map
-    self.numCylinders = 0
+    self.num_cylinders = 0
     self.cylinderList = []
     self.cyl_radius = cyl_radius
     self.r_shift = -(len(self.map) - 1) * self.cyl_radius * 2
@@ -92,18 +92,18 @@ class WorldWriter():
 
   def _createCylinder(self, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius, rgb):
     self.file.write(cylinder_define % (
-        self.numCylinders, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius, radius, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1], rgb[2]
+        self.num_cylinders, pos_x, pos_y, pos_z, rot_a, rot_b, rot_c, radius, radius, rgb[0], rgb[1], rgb[2], rgb[0], rgb[1], rgb[2]
     ))
     self.file.write("\n")
     
     self.cylinderList.append([pos_x, pos_y, pos_z, rot_a, rot_b, rot_c])
-    self.numCylinders += 1
+    self.num_cylinders += 1
 
   def _writeMidBoiler(self):
       self.file.write(world_boiler_mid)
 
   def _placeCylinders(self):
-    for i in range(self.numCylinders):
+    for i in range(self.num_cylinders):
       self.file.write(cylinder_place % (
           i, self.cylinderList[i][0], self.cylinderList[i][1], self.cylinderList[i][2], 
           self.cylinderList[i][3], self.cylinderList[i][4], self.cylinderList[i][5], 
@@ -118,5 +118,5 @@ class WorldWriter():
   def _close(self):
     self.file.close()
 
-  def getShifts(self):
+  def get_shifts(self):
     return self.r_shift, self.c_shift
