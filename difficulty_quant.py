@@ -1,7 +1,6 @@
 import math
 import Queue
 import numpy as np
-import random # TODO: delete this line later
   
 class DifficultyMetrics:
   # radius used for dispersion
@@ -106,7 +105,7 @@ class DifficultyMetrics:
       return -1
 
     axes_wall = []
-    # four cardinal, four diagonal, and one in between each (slope +- 1/2 or 2)
+    # four cardinal, four diagonal, and one in between each (slope +- 1/2 or +-2)
     for move in [(0, 1), (1, 2), (1, 1), (2, 1), (1, 0), (2, -1), (1, -1), (1, -2), (0, -1), (-2, -1), (-1, -1), (-1, -2), (-1, 0), (-2, 1), (-1, 1), (-1, 2)]:
       count = 0
       wall = False

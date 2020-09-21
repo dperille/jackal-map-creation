@@ -436,6 +436,7 @@ class Node:
 
 class Display:
   def __init__(self, map, path, map_with_path, jackal_map, jackal_map_with_path, density_radius, dispersion_radius):
+    # TODO: take out density radius
     self.map = map
     self.path = path
     self.map_with_path = map_with_path
@@ -444,20 +445,17 @@ class Display:
     self.density_radius = density_radius
     self.dispersion_radius = dispersion_radius
   
-    diff = DifficultyMetrics(jackal_map, path, density_radius)
+    diff = DifficultyMetrics(jackal_map, path, dispersion_radius)
     self.metrics = {
       "closestDist": diff.closestWall(),
-      "density": diff.density(),
       "avgVis": diff.avgVisibility(),
       "dispersion": diff.dispersion(),
       "char_dimension": diff.characteristic_dimension(),
     }
 
   def __call__(self):
-    fig, ax = plt.subplots(3, 3)
+    fig, ax = plt.subplots(3, 3) # TODO: figure out why this is causing error
     
-    
-
     # map and path
     map_plot = ax[0][0].imshow(self.map_with_path, cmap='Greys', interpolation='nearest')
     map_plot.axes.get_xaxis().set_visible(False)
@@ -601,36 +599,36 @@ class Input:
 
 def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showMetrics=1):
 
-    # dirName = "~/jackal_ws/src/jackal_simulator/jackal_gazebo/worlds/"
+    world_file = 'test_data/world_files/world_%d.world' % iteration
+    grid_file = 'test_data/grid_files/grid_%d.npy' % iteration
+    cspace_file = 'test_data/cspace_files/cspace_%d.npy' % iteration
+    path_file = 'test_data/path_files/path_%d.npy' % iteration
+    diff_file = 'test_data/metrics_files/metrics_%d.npy' % iteration
+    pgm_file = 'test_data/map_files/map_pgm_%d.pgm' % iteration
+    yaml_file = 'test_data/map_files/yaml_%d.yaml' % iteration
 
-    world_file = "test_data/world_files/world_" + str(iteration) + ".world"
-    grid_file = "test_data/grid_files/grid_" + str(iteration) + ".npy"
-    cspace_file = "test_data/grid_files/cspace_" + str(iteration) + ".npy"
-    path_file = "test_data/path_files/path_" + str(iteration) + ".npy"
-    diff_file = "test_data/metrics_files/metrics_" + str(iteration) + ".npy"
-    pgm_file = "test_data/map_files/map_pgm_" + str(iteration) + ".pgm"
-    yaml_file = "test_data/map_files/yaml_" + str(iteration) + ".yaml"
-
+    """
     # get user parameters, if provided
-    # inputWindow = Input()
-    # inputDict = inputWindow.inputs
+    inputWindow = Input()
+    inputDict = inputWindow.inputs
+    """
 
-    inputDict = { "seed" : seed,
-                  "smoothIter": smoothIter,
-                  "fillPct" : fillPct,
-                  "rows" : rows,
-                  "cols" : cols,
-                  "showMetrics" : showMetrics }
+    inputDict = { 'seed' : seed,
+                  'smoothIter': smoothIter,
+                  'fillPct' : fillPct,
+                  'rows' : rows,
+                  'cols' : cols,
+                  'showMetrics' : showMetrics }
 
     # create world generator and run smoothing iterations
-    print("Seed: %d" % inputDict["seed"])
-    obMapGen = ObstacleMap(inputDict["rows"], inputDict["cols"], inputDict["fillPct"], inputDict["seed"], inputDict["smoothIter"])
+    print('Seed: %d' % inputDict['seed'])
+    obMapGen = ObstacleMap(inputDict['rows'], inputDict['cols'], inputDict['fillPct'], inputDict['seed'], inputDict['smoothIter'])
     obMapGen()
 
     # get map from the obstacle map generator
     obstacle_map = obMapGen.getMap()
     
-    # generate jackal's map from the obstacle map & ensure connectivity
+    # generate jackal's map from the obstacle map
     jMapGen = JackalMap(obstacle_map, jackal_radius)
     startRegion = jMapGen.biggestLeftRegion()
     endRegion = jMapGen.biggestRightRegion()
@@ -671,7 +669,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
 
     if not path:
       print("path not found")
-      return # path not found, throw this one out
+      return # path not found, don't use this world
 
     print("Found path!")
 
@@ -730,16 +728,17 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     yw.write()
     
 
-    
+    """
     # display world and heatmap of distances
     if inputDict["showMetrics"]:
       display = Display(obstacle_map, path, obstacle_map_with_path, jackal_map, jackal_map_with_path, density_radius=3, dispersion_radius=3)
       display()
-
+    
     # only show the map itself
     else:
       plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
       plt.show()
+    """
     
         
     return True # path found
