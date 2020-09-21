@@ -1,6 +1,7 @@
 import math
 import Queue
 import numpy as np
+import random # TODO: delete this line later
   
 class DifficultyMetrics:
   # radius used for dispersion
@@ -41,16 +42,17 @@ class DifficultyMetrics:
 
   def characteristic_dimension(self):
     cdr = [[0 for i in range(self.cols)] for j in range(self.rows)]
+    my_axes = [(0, 1), (1, 1), (1, 0), (1, -1)]
     for r in range(self.rows):
       for c in range(self.cols):
         if self.map[r][c] == 1:
           cdr[r][c] = 0
 
-        isovist_dists = []
+        cdr_min = self.rows + self.cols
         for axis in self.axes:
-          isovist_dists.append(self._distance(r, c, axis))
+          cdr_min = min(cdr_min, self._distance(r, c, axis))
 
-        cdr[r][c] = min(isovist_dists)
+        cdr[r][c] = cdr_min
 
     return cdr
 
@@ -276,6 +278,6 @@ def main(num_files=10):
 
     metrics = np.asarray(diffs.avg_all_metrics())
     np.save(dir_name + metrics_file % i, metrics)
-    
+        
 if __name__ == "__main__":
   main()
