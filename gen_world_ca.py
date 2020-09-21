@@ -12,9 +12,13 @@ from difficulty_quant import DifficultyMetrics
 from pgm_writer import PGMWriter
 from yaml_writer import YamlWriter
 
+# jackal takes up 2 extra grid squares on each side in addition to center square
+jackal_radius = 2
 
-jackal_radius = 2 # to account for Jackal's inflation radius
+# pgm file resolution
 pgm_res = 0.15 # meters per pixel
+
+# inflation radius found in planner params
 infl_rad = 0.3 # meters
 
 class ObstacleMap():
@@ -72,16 +76,6 @@ class ObstacleMap():
 
   def _isInMap(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
-
-  # update the obstacle map given the jackal-space
-  # coordinates that were cleared to ensure connectivity
-  def updateObstacleMap(self, cleared_coords, kernel_size):
-    for coord in cleared_coords:
-      for r in range(coord[0], coord[0] + kernel_size):
-        for c in range(coord[1], coord[1] + kernel_size):
-          self.map[r][c] = 0
-
-    return self.map
 
   def getMap(self):
     return self.map
