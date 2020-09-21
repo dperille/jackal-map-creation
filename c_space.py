@@ -8,7 +8,7 @@ def create_cspace_files(obs_map_dir, num_files, cspace_dir, radius):
 
         obs_map = np.load(input_file)
         jm = JackalMap(obs_map, radius)
-        cspace_grid = jm.getMap()
+        cspace_grid = jm.get_map()
 
         # save c-space
         cspace_grid = np.asarray(cspace_grid)

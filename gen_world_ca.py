@@ -22,20 +22,20 @@ pgm_res = 0.15 # meters per pixel
 infl_rad = 0.3 # meters
 
 class ObstacleMap():
-  def __init__(self, rows, cols, randFillPct, seed=None, smoothIter=5):
+  def __init__(self, rows, cols, rand_fill_pct, seed=None, smooth_iter=5):
     self.map = [[0 for i in range(cols)] for j in range(rows)]
     self.rows = rows
     self.cols = cols
-    self.randFillPct = randFillPct
+    self.rand_fill_pct = rand_fill_pct
     self.seed = seed
-    self.smoothIter = smoothIter
+    self.smooth_iter = smooth_iter
 
   def __call__(self):
-    self._randomFill()
-    for n in range(self.smoothIter):
+    self._random_fill()
+    for n in range(self.smooth_iter):
       self._smooth()
 
-  def _randomFill(self):
+  def _random_fill(self):
     if self.seed:
       random.seed(self.seed)
 
@@ -44,27 +44,27 @@ class ObstacleMap():
         if r == 0 or r == self.rows - 1:
           self.map[r][c] = 1
         else:
-          self.map[r][c] = 1 if random.random() < self.randFillPct else 0
+          self.map[r][c] = 1 if random.random() < self.rand_fill_pct else 0
 
   def _smooth(self):
     newmap = [[self.map[r][c] for c in range(self.cols)] for r in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
         # if more than 4 filled neighbors, fill this tile
-        if self._tileNeighbors(r, c) > 4:
+        if self._tile_neighbors(r, c) > 4:
           newmap[r][c] = 1
 
         # if less than 2 filled neighbors, empty this one
-        elif self._tileNeighbors(r, c) < 2:
+        elif self._tile_neighbors(r, c) < 2:
           newmap[r][c] = 0
 
     self.map = newmap
 
-  def _tileNeighbors(self, r, c):
+  def _tile_neighbors(self, r, c):
     count = 0
     for i in range(r - 1, r + 2):
       for j in range(c - 1, c + 2):
-        if self._isInMap(i, j):
+        if self._in_map(i, j):
           if i != r or j != c:
             count += self.map[i][j]
 
@@ -74,10 +74,10 @@ class ObstacleMap():
     
     return count
 
-  def _isInMap(self, r, c):
+  def _in_map(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
-  def getMap(self):
+  def get_map(self):
     return self.map
 
 class JackalMap:
@@ -86,11 +86,11 @@ class JackalMap:
     self.rows = len(ob_map)
     self.cols = len(ob_map[0])
 
-    self.map = self._jackalMapFromObstacleMap(robot_radius)
+    self.map = self._jmap_from_obs_map(robot_radius)
     self.infl_rad_cells = self.calc_infl_rad_cells()
 
   # use flood-fill algorithm to find the open region including (r, c)
-  def _getRegion(self, r, c):
+  def _get_region(self, r, c):
     queue = Queue.Queue(maxsize=0)
     
     # region is 2D array that indicates the open region connected to (r, c) with a 1
@@ -108,7 +108,7 @@ class JackalMap:
       # check four cardinal neighbors
       for i in range(coord_r-1, coord_r+2):
         for j in range(coord_c-1, coord_c+2):
-          if self._isInMap(i, j) and (i == coord_r or j == coord_c):
+          if self._in_map(i, j) and (i == coord_r or j == coord_c):
             # if empty space and not checked yet
             if self.map[i][j] == 0 and region[i][j] == 0:
               # add to region and put in queue
@@ -119,48 +119,48 @@ class JackalMap:
     return region, size
 
   # returns the largest contiguous region with a tile in the leftmost column
-  def biggestLeftRegion(self):
-    maxSize = 0
-    maxRegion = []
+  def biggest_left_region(self):
+    max_size = 0
+    max_region = []
     for row in range(self.rows):
-      region, size = self._getRegion(row, 0)
+      region, size = self._get_region(row, 0)
 
-      if size > maxSize:
-        maxSize = size
-        maxRegion = region
+      if size > max_size:
+        max_size = size
+        max_region = region
 
     # no region available, just generate random open spot
-    if maxSize == 0:
-      randomRow = random.randint(1, self.rows - 1)
-      self.map[randomRow][0] = 0
+    if max_size == 0:
+      random_row = random.randint(1, self.rows - 1)
+      self.map[random_row][0] = 0
 
-      maxRegion = [[0 for i in range(self.cols)] for j in range(self.rows)]
-      maxRegion[randomRow][0] = 1
+      max_region = [[0 for i in range(self.cols)] for j in range(self.rows)]
+      max_region[random_row][0] = 1
 
-    return maxRegion
+    return max_region
 
   # returns the largest contiguous region with a tile in the rightmost column
-  def biggestRightRegion(self):
-    maxSize = 0
-    maxRegion = []
+  def biggest_right_region(self):
+    max_size = 0
+    max_region = []
     for row in range(self.rows):
-      region, size = self._getRegion(row, self.cols-1)
+      region, size = self._get_region(row, self.cols-1)
 
-      if size > maxSize:
-        maxSize = size
-        maxRegion = region
+      if size > max_size:
+        max_size = size
+        max_region = region
 
     # no region available, just generate random open spot
-    if maxSize == 0:
-      randomRow = random.randint(1, self.rows - 1)
-      self.map[randomRow][self.cols - 1] = 0
+    if max_size == 0:
+      random_row = random.randint(1, self.rows - 1)
+      self.map[random_row][self.cols - 1] = 0
 
-      maxRegion = [[0 for i in range(self.cols)] for j in range(self.rows)]
-      maxRegion[randomRow][self.cols - 1] = 1
+      max_region = [[0 for i in range(self.cols)] for j in range(self.rows)]
+      max_region[random_row][self.cols - 1] = 1
 
-    return maxRegion
+    return max_region
 
-  def regionsAreConnected(self, regionA, regionB):
+  def regions_connected(self, regionA, regionB):
     for r in range(len(regionA)):
       for c in range(len(regionA[0])):
         if regionA[r][c] != regionB[r][c]:
@@ -172,51 +172,9 @@ class JackalMap:
 
     return False
 
-  def connectRegions(self, regionA, regionB):
-    coords_cleared = []
-
-    if self.regionsAreConnected(regionA, regionB):
-      return coords_cleared
-
-    print('Connecting separate regions')
-    rightmostA = (-1, -1)
-    leftmostB = (-1, self.cols - 1)
-
-    for r in range(self.rows):
-      for c in range(self.cols):
-        if regionA[r][c] == 1 and c >= rightmostA[1]:
-          rightmostA = (r, c)
-        if regionB[r][c] == 1 and c <= leftmostB[1]:
-          leftmostB = (r, c)
-
-    lrchange = 0
-    udchange = 0
-    if rightmostA[1] < leftmostB[1]:
-      lrchange = 1
-    elif rightmostA[1] > leftmostB[1]:
-      lrchange = -1
-    if rightmostA[0] < leftmostB[0]:
-      udchange = 1
-    elif rightmostA[0] > leftmostB[0]:
-      udchange = -1
-
-    rmar = rightmostA[0]
-    rmac = rightmostA[1]
-    lmbr = leftmostB[0]
-    lmbc = leftmostB[1]
-    for count in range(1, abs(rmac-lmbc)+1):
-      coords_cleared.append((rmar, rmac + count * lrchange))
-      self.map[rmar][rmac+count * lrchange] = 0
-
-    for count in range(1, abs(rmar-lmbr)+1):
-      coords_cleared.append((rmar + count * udchange, rmac + (lmbc - rmac)))
-      self.map[rmar+count*udchange][rmac+(lmbc-rmac)] = 0
-
-    return coords_cleared
-
   # returns a path between all points in the list points using A*
   # if a valid path cannot be found, returns None
-  def getPath(self, points, dist_map):
+  def get_path(self, points, dist_map):
     num_points = len(points)
     if num_points < 2:
       raise Exception('Path needs at least two points')
@@ -247,7 +205,7 @@ class JackalMap:
   # robot_radius is how many cells from the center cell the robot takes up
   # robot_radius of 1 means robot takes up 3x3 cells
   # robot_radius of 2 means robot takes up 5x5 cells
-  def _jackalMapFromObstacleMap(self, robot_radius):
+  def _jmap_from_obs_map(self, robot_radius):
     jackal_map = [[0 for i in range(self.cols)] for j in range(self.rows)]
 
     for r in range(self.rows):
@@ -261,12 +219,12 @@ class JackalMap:
   def _open(self, row, col, robot_radius):
     for r in range(row - robot_radius, row + robot_radius + 1):
       for c in range(col - robot_radius, col + robot_radius + 1):
-        if self._isInMap(r, c) and self.ob_map[r][c] == 1:
+        if self._in_map(r, c) and self.ob_map[r][c] == 1:
           return False
 
     return True
 
-  def _isInMap(self, r, c):
+  def _in_map(self, r, c):
     return 0 <= r and r < self.rows and 0 <= c and c < self.cols
 
   # translate the inflation radius from meters to cells
@@ -275,7 +233,7 @@ class JackalMap:
     return round(rad_in_cells, 0)
 
 
-  def getMap(self):
+  def get_map(self):
     return self.map
 
 
@@ -513,9 +471,9 @@ class Input:
     self.seed = tk.Entry(self.root)
     self.seed.grid(row=0, column=1)
 
-    self.smoothIter = tk.Entry(self.root)
-    self.smoothIter.insert(0, '4')
-    self.smoothIter.grid(row=1, column=1)
+    self.smooth_iter = tk.Entry(self.root)
+    self.smooth_iter.insert(0, '4')
+    self.smooth_iter.grid(row=1, column=1)
 
     self.fillPct = tk.Entry(self.root)
     self.fillPct.insert(0,'0.35')
@@ -553,9 +511,9 @@ class Input:
     # get number of smoothing iterations
     default_smooth_iter = 4
     try:
-      self.inputs['smoothIter'] = int(self.smoothIter.get())
+      self.inputs['smooth_iter'] = int(self.smooth_iter.get())
     except:
-      self.inputs['smoothIter'] = default_smooth_iter
+      self.inputs['smooth_iter'] = default_smooth_iter
 
     # get random fill percentage
     default_fill_pct = 0.35
@@ -588,7 +546,7 @@ class Input:
     self.root.destroy()
     
 
-def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showMetrics=1):
+def main(iteration=0, seed=0, smooth_iter=4, fillPct=.27, rows=30, cols=30, showMetrics=1):
 
     world_file = 'test_data/world_files/world_%d.world' % iteration
     grid_file = 'test_data/grid_files/grid_%d.npy' % iteration
@@ -605,7 +563,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     """
 
     inputDict = { 'seed' : seed,
-                  'smoothIter': smoothIter,
+                  'smooth_iter': smooth_iter,
                   'fillPct' : fillPct,
                   'rows' : rows,
                   'cols' : cols,
@@ -613,23 +571,23 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
 
     # create world generator and run smoothing iterations
     print('Seed: %d' % inputDict['seed'])
-    obMapGen = ObstacleMap(inputDict['rows'], inputDict['cols'], inputDict['fillPct'], inputDict['seed'], inputDict['smoothIter'])
+    obMapGen = ObstacleMap(inputDict['rows'], inputDict['cols'], inputDict['fillPct'], inputDict['seed'], inputDict['smooth_iter'])
     obMapGen()
 
     # get map from the obstacle map generator
-    obstacle_map = obMapGen.getMap()
+    obstacle_map = obMapGen.get_map()
     
     # generate jackal's map from the obstacle map
     jMapGen = JackalMap(obstacle_map, jackal_radius)
-    startRegion = jMapGen.biggestLeftRegion()
-    endRegion = jMapGen.biggestRightRegion()
+    startRegion = jMapGen.biggest_left_region()
+    endRegion = jMapGen.biggest_right_region()
 
     # throw out any maps that don't have a path
-    if not jMapGen.regionsAreConnected(startRegion, endRegion):
+    if not jMapGen.regions_connected(startRegion, endRegion):
       return
 
     # get the final jackal map and update the obstacle map
-    jackal_map = jMapGen.getMap()
+    jackal_map = jMapGen.get_map()
 
     # write map to .world file
     cyl_radius = 0.075
@@ -656,7 +614,7 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     diff_quant = DifficultyMetrics(jackal_map, path, radius=3)
     dist_map = diff_quant.closestWall()
     print('Points: (%d, 0), (%d, %d)' % (left_coord_r, right_coord_r, len(jackal_map[0])-1))
-    path = jMapGen.getPath([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
+    path = jMapGen.get_path([(left_coord_r, 0), (right_coord_r, len(jackal_map[0])-1)], dist_map)
 
     if not path:
       print('path not found')
@@ -736,4 +694,4 @@ def main(iteration=0, seed=0, smoothIter=4, fillPct=.27, rows=30, cols=30, showM
     
 
 if __name__ == "__main__":
-    main(iteration = -1, seed=2422863611227240384, fillPct=0.2, smoothIter=4)
+    main(iteration = -1, seed=2422863611227240384, fillPct=0.2, smooth_iter=4)

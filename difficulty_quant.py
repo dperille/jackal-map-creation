@@ -177,7 +177,7 @@ class DifficultyMetrics:
 
 
   # bounds check
-  def _isInMap(self, r, c):
+  def _in_map(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
   # returns a value in range [0, (self.rows - 1) / 2]
@@ -196,7 +196,7 @@ class DifficultyMetrics:
         # enqueue all neighbors if they are in the map and have not been visited
         for row in range(point.r - 1, point.r + 2):
           for col in range(point.c - 1, point.c + 2):
-            if self._isInMap(row, col) and (row, col) not in visited:
+            if self._in_map(row, col) and (row, col) not in visited:
               dist = math.sqrt((row - r) ** 2 + (col - c) ** 2)
               neighbor = self.Wrapper(dist, row, col)
               pq.put(neighbor)
