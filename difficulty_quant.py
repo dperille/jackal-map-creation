@@ -17,7 +17,7 @@ class DifficultyMetrics:
     for r in range(self.rows):
       for c in range(self.cols):
 
-        dists[r][c] = self._distToClosestWall(r, c)
+        dists[r][c] = self._dist_closest_wall(r, c)
 
     return dists
 
@@ -25,7 +25,7 @@ class DifficultyMetrics:
     vis = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        vis[r][c] = self._avgVisCell(r, c)
+        vis[r][c] = self._avg_vis_cell(r, c)
 
     return vis
 
@@ -35,7 +35,7 @@ class DifficultyMetrics:
     disp = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
       for c in range(self.cols):
-        disp[r][c] = self._cellDispersion(r, c, self.radius)
+        disp[r][c] = self._cell_dispersion(r, c, self.radius)
 
     return disp
 
@@ -99,7 +99,7 @@ class DifficultyMetrics:
     return arc_len / chord_len
 
 
-  def _cellDispersion(self, r, c, radius):
+  def _cell_dispersion(self, r, c, radius):
     if self.map[r][c] == 1:
       return -1
 
@@ -143,7 +143,7 @@ class DifficultyMetrics:
     return change_count
 
 
-  def _avgVisCell(self, r, c):
+  def _avg_vis_cell(self, r, c):
     total_vis = 0
     num_axes = 0
     for r_move in [-1, 0, 1]:
@@ -181,7 +181,7 @@ class DifficultyMetrics:
 
   # returns a value in range [0, (self.rows - 1) / 2]
   # returns 0 if self.map[r][c] is an obstacle, 1 if an adjacent, non-diagonal cell is an obstacle, etc.
-  def _distToClosestWall(self, r, c):
+  def _dist_closest_wall(self, r, c):
     pq = Queue.PriorityQueue()
     first_wrapper = self.Wrapper(0, r, c)
     pq.put(first_wrapper)
@@ -228,19 +228,19 @@ class DifficultyMetrics:
     # closest wall
     total = 0.0
     for row, col in self.path:
-      total += self._distToClosestWall(row, col)
+      total += self._dist_closest_wall(row, col)
     result.append(total / len(self.path))  
     
     # average visibility
     total = 0.0
     for row, col in self.path:
-      total += self._avgVisCell(row, col)
+      total += self._avg_vis_cell(row, col)
     result.append(total / len(self.path)) 
 
     # dispersion
     total = 0.0
     for row, col in self.path:
-      total += self._cellDispersion(row, col, self.radius)
+      total += self._cell_dispersion(row, col, self.radius)
     result.append(total / len(self.path))
 
     # characteristic dimension
