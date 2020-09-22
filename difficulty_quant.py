@@ -4,13 +4,13 @@ import numpy as np
   
 class DifficultyMetrics:
   # radius used for dispersion
-  def __init__(self, map, path, radius):
+  def __init__(self, map, path, disp_radius):
     self.map = map
     self.rows = len(map)
     self.cols = len(map[0])
     self.axes = [(0, 1), (1, 1), (1, 0), (1, -1)] # vertical, horizontal, and 2 diagonals
     self.path = path
-    self.radius = radius
+    self.radius = disp_radius
 
   def closest_wall(self):
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
