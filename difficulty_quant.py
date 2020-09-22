@@ -3,7 +3,10 @@ import Queue
 import numpy as np
   
 class DifficultyMetrics:
-  # radius used for dispersion
+
+  # map: C-space occupancy grid
+  # path: list of points (row, col)
+  # disp_radius: radius for dispersion
   def __init__(self, map, path, disp_radius):
     self.map = map
     self.rows = len(map)
@@ -12,6 +15,7 @@ class DifficultyMetrics:
     self.path = path
     self.radius = disp_radius
 
+  # returns grid with the distance to closest obstacle at each point
   def closest_wall(self):
     dists = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
@@ -21,6 +25,7 @@ class DifficultyMetrics:
 
     return dists
 
+  # returns grid with the average visibility at each point
   def avg_visibility(self):
     vis = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
@@ -29,8 +34,8 @@ class DifficultyMetrics:
 
     return vis
 
-  # calculates the number of changes betweeen open & wall
-  # in its field of view (along 16 axes)
+  # returns grid with the dispersion at each point
+  # checks along 16 axes within the dispersion radius
   def dispersion(self):
     disp = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
@@ -39,6 +44,8 @@ class DifficultyMetrics:
 
     return disp
 
+  # returns grid with the characteristic dimension at each point
+  # characteristic dimension calculated in 2 directions for 4 axes
   def characteristic_dimension(self):
     cdr = [[0 for i in range(self.cols)] for j in range(self.rows)]
     for r in range(self.rows):
@@ -54,51 +61,50 @@ class DifficultyMetrics:
 
     return cdr
 
-  def axis_width(self, axis):
-    width = [[0 for i in range(self.cols)] for j in range(self.rows)]
-    for r in range(self.rows):
-      for c in range(self.cols):
-        width[r][c] = self._distance(r, c, axis)
-
-    return width
-
-  # currently returns a value between 0 and board width/length - 1
+  # returns the distance along the axis in both directions, not including (r, c)
   def _distance(self, r, c, axis):
     if self.map[r][c] == 1:
       return -1
-    
+
+    # check axis in both directions
     reverse_axis = (axis[0] * -1, axis[1] * -1)
     dist = 0
     for move in [axis, reverse_axis]:
       r_curr = r
       c_curr = c
+
+      # move in axis direction until an obstacle is found
       while self.map[r_curr][c_curr] != 1:
         r_curr += move[0]
         c_curr += move[1]
 
-        if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
+        if not self._in_map(r_curr, c_curr):
           break
 
+        # add the distance traveled to the total
         if self.map[r_curr][c_curr] != 1:
           dist += math.sqrt(move[0] ** 2 + move[1] ** 2)
 
     return dist
 
 
-  # a and b are points (2-tuples)
+  # a and b are tuples (row, col)
   def _dist_between_points(self, a, b):
     return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
-  # path is list of points (2-tuples)
+  # path is list of points as tuples (row, col)
+  # returns tortuosity calculated using the formula (arc length / chord length)
   def tortuosity(self):
+    # calculate arc length
     arc_len = 0.0
     for i in range(1, len(self.path)):
       arc_len += self._dist_between_points(self.path[i - 1], self.path[i])
       
+    # calculate chord length
     chord_len = self._dist_between_points(self.path[0], self.path[-1])
     return arc_len / chord_len
 
-
+  # returns the cell dispersion within the radius
   def _cell_dispersion(self, r, c, radius):
     if self.map[r][c] == 1:
       return -1
@@ -142,9 +148,9 @@ class DifficultyMetrics:
 
     return change_count
 
-
+  # returns the average visibility at the point (r, c)
   def _avg_vis_cell(self, r, c):
-    total_vis = 0
+    total_vis = 0.0
     num_axes = 0
     for r_move in [-1, 0, 1]:
       for c_move in [-1, 0, 1]:
@@ -156,7 +162,7 @@ class DifficultyMetrics:
         c_curr = c
         wall_found = False
         while not wall_found:
-          if r_curr < 0 or r_curr >= self.rows or c_curr < 0 or c_curr >= self.cols:
+          if not self._in_map(r_curr, c_curr):
             break
 
           if self.map[r_curr][c_curr] == 1:
@@ -179,8 +185,8 @@ class DifficultyMetrics:
   def _in_map(self, r, c):
     return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
-  # returns a value in range [0, (self.rows - 1) / 2]
-  # returns 0 if self.map[r][c] is an obstacle, 1 if an adjacent, non-diagonal cell is an obstacle, etc.
+  # returns the distance to the closest obstacle at point (r, c)
+  # returns 0 if self.map[r][c] is an obstacle, 1 if an adjacent non-diagonal cell is an obstacle, etc.
   def _dist_closest_wall(self, r, c):
     pq = Queue.PriorityQueue()
     first_wrapper = self.Wrapper(0, r, c)
@@ -213,16 +219,14 @@ class DifficultyMetrics:
       self.r = row
       self.c = col
 
-    
-
     def __lt__(self, value):
       return self.dist < value.dist
  
-  # returns a list of the metrics, averaged over the path
-  # unnormalized
+  # returns a list of the unnormalized metrics, averaged over the path
+  # metrics order: distance to closest wall, average visibility, dispersion,
+  # characteristic dimension, and tortuosity
   def avg_all_metrics(self):
     result = []
-
     total = 0.0
 
     # closest wall
@@ -264,8 +268,8 @@ def load_data(cspace_file, path_file):
   return cspace_grid, path
 
 # load all c-spaces and paths, calculate metrics, and save
-def main(num_files=10):
-  dir_name = 'phys_data/'
+def main(num_files=300):
+  dir_name = 'test_data/'
   path_file = 'path_files/path_%d.npy'
   cspace_file = 'cspace_files/cspace_%d.npy'
   metrics_file = 'metrics_files/metrics_%d.npy'

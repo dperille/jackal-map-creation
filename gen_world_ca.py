@@ -627,10 +627,10 @@ def main(iteration=0, seed=0, smooth_iter=4, fill_pct=.27, rows=30, cols=30, sho
 
 
     # print start and end points in gazebo coords
-    start_r = r_shift + left_coord_r * cyl_radius * 2
+    start_r = r_shift + left_coord_r * cyl_radius * 2 # TODO: factor this out to variable
     start_c = c_shift
-    end_r = r_shift + right_coord_r * cyl_radius * 2
-    end_c = len(obstacle_map[0]) * cyl_radius * 2 + c_shift
+    end_r = r_shift + right_coord_r * cyl_radius * 2 # TODO: factor this out to variable
+    end_c = len(obstacle_map[0]) * cyl_radius * 2 + c_shift # TODO: factor this out to variable
     print('Start: (%f, %f) to Goal: (%f, %f)' % (start_r, start_c, end_r, end_c))
 
     # put paths into matrices to display them
