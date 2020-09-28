@@ -24,3 +24,5 @@ Once all the environments are generated, use normalize_metrics.py to normalize t
 The dataset files will be saved in the test_data folder. The folder called cspace_files contains .npy files with a 30x30 occupancy grid of the C-space. The grid_files folder will contain the occupancy grid of the world in .npy format. The map_files folder contains pgm and yaml files for use with ROS map_server. The
 world_files folder contains .world files for use in Gazebo simulations. The metrics_files folder contains the 5 difficulty metrics calculated on the path in this order: distance to closest obstacle, average visibility, dispersion, characteristic dimension, and tortuosity.
 The path_files folder contains the path through the world, in .npy format. The path is represented by an nx2 array, where n is the number of points in the path. Points are represented by their row and column, in that order.
+
+The [jackal_timer repository](https://github.com/dperille/jackal_timer) can be used to run simulation trials on the dataset.
