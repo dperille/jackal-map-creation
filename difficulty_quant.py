@@ -168,7 +168,7 @@ class DifficultyMetrics:
           if self.map[r_curr][c_curr] == 1:
             wall_found = True
           else:
-            this_vis += 1
+            this_vis += math.sqrt((r_move ** 2) + (c_move ** 2))
 
           r_curr += r_move
           c_curr += c_move
