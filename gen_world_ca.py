@@ -21,6 +21,12 @@ pgm_res = 0.15 # meters per pixel
 # inflation radius found in planner params
 infl_rad = 0.3 # meters
 
+# radius of cylinders in the .world file
+cyl_radius = 0.075
+
+# length of containment wall, in meters
+contain_wall_length = 5
+
 # class to generate occupancy grids using cellular automaton
 class ObstacleMap():
   # rand_fill_pct is the initial fill percent
@@ -593,8 +599,6 @@ def main(iteration=0, seed=0, smooth_iter=4, fill_pct=.27, rows=30, cols=30, sho
     jackal_map = jmap_gen.get_map()
 
     # write map to .world file
-    cyl_radius = 0.075
-    contain_wall_length = 5
     writer = WorldWriter(world_file, obstacle_map, cyl_radius=cyl_radius, contain_wall_length=contain_wall_length)
     contain_wall_cylinders = writer()
     r_shift, c_shift = writer.get_shifts()
