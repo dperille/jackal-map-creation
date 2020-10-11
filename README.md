@@ -17,6 +17,7 @@ The script will generate a path through this world and calculate difficulty metr
 
 ### Generating a new dataset
 Run generator.py in Python 2. This will generate 300 worlds with dimensions 30x30 using 12 different sets of cellular automaton parameters. These parameters can be changed within the generator.py script.
+If you change the dimensions or radius of the cylinders, you'll have to update the .yaml files or `yaml_writer.py` to reflect the new `resolution`, which is the diameter of each obstacle, as well as the `origin`, whose current value of 4.5 will need to change to `-1 * number of rows * diameter of cylinders`.
 Once all the environments are generated, use normalize_metrics.py to normalize the values of the calculated metrics. This script will generate 300 more files with the normalized metric values in the norm_metrics_files folder.
 
 
