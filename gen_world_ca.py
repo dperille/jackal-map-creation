@@ -396,7 +396,7 @@ class Node:
  
 # class to display occupancy grid, path, C-space, and difficulty metrics
 class Display:
-  def __init__(self, map_with_path, jackal_map, jackal_map_with_path, dispersion_radius):
+  def __init__(self, map_with_path, jackal_map, jackal_map_with_path, dispersion_radius, path):
     self.map_with_path = map_with_path
     self.jackal_map = jackal_map
     self.jackal_map_with_path = jackal_map_with_path
@@ -683,20 +683,11 @@ def main(iteration=0, seed=0, smooth_iter=4, fill_pct=.27, rows=30, cols=30, sho
     yw = YamlWriter(yaml_file, iteration)
     yw.write()
     
-    # uncomment to display grid, C-space, path, and metrics
-    """
     # display world and heatmap of distances
     if input_dict['show_metrics']:
-      display = Display(obstacle_map_with_path, jackal_map, jackal_map_with_path, dispersion_radius=3)
+      display = Display(obstacle_map_with_path, jackal_map, jackal_map_with_path, 3, path)
       display()
-    
-    # only show the map itself
-    else:
-      plt.imshow(obstacle_map_with_path, cmap='Greys', interpolation='nearest')
-      plt.show()
-    """
-    
-        
+   
     return True # path found
     
 
