@@ -1,4 +1,5 @@
     <model name='unit_cylinder_%d'>
+      <static>1</static>
       <pose frame=''>%f %f %f %f %f %f</pose>
       <link name='link'>
         <inertial>
