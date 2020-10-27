@@ -173,10 +173,8 @@ class DifficultyMetrics:
           r_curr += r_move
           c_curr += c_move
         
-        # if ran out of bounds before finding wall, don't count
-        if wall_found:
-          total_vis += this_vis
-          num_axes += 1
+        total_vis += this_vis
+        num_axes += 1
     
     return total_vis / num_axes 
 
