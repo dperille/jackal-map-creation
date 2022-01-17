@@ -1,10 +1,20 @@
 import random
 import datetime
-import Queue
+try:
+    # Python 3
+    from queue import Queue
+except ImportError:
+    # Python 2
+    from Queue import Queue
 import math
 
 import matplotlib.pyplot as plt
-import Tkinter as tk
+try:
+    # Python 3
+    import tkinter as tk
+except ImportError:
+    # Python 2
+    import Tkinter as tk
 import numpy as np
 
 from world_writer import WorldWriter
@@ -114,7 +124,7 @@ class JackalMap:
 
   # use flood-fill algorithm to find the open region including (r, c)
   def _get_region(self, r, c):
-    queue = Queue.Queue(maxsize=0)
+    queue = Queue(maxsize=0)
     
     # region is 2D array that indicates the open region connected to (r, c) with a 1
     region = [[0 for i in range(self.cols)] for j in range(self.rows)]
@@ -168,6 +178,9 @@ class JackalMap:
     return max_region
 
   def regions_connected(self, regionA, regionB):
+    if len(regionB) != len(regionA):
+      # Sometimes one of the regions can be empty
+      return False
     for r in range(len(regionA)):
       for c in range(len(regionA[0])):
         if regionA[r][c] != regionB[r][c]:
@@ -373,7 +386,7 @@ class AStarSearch:
   def return_path(self, end_node):
     path = []
     curr_node = end_node
-    while curr_node != None:
+    while curr_node is not None:
       path.append((curr_node.r, curr_node.c))
       curr_node = curr_node.parent
 
@@ -593,6 +606,7 @@ def main(iteration=0, seed=0, smooth_iter=4, fill_pct=.27, rows=30, cols=30, sho
 
     # throw out any maps that don't have a path
     if not jmap_gen.regions_connected(start_region, end_region):
+      print("Start and end regions don't connect")
       return
 
     # get the final Jackal Map (C-space)
