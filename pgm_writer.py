@@ -45,12 +45,15 @@ class PGMWriter():
         # open file for writing
         try:
             fout=open(self.filename, 'wb')
-        except IOError, er:
+        except (IOError, er):
             sys.exit()
 
 
         # define PGM Header
-        pgm_header = 'P5' + '\n' + str(width) + '  ' + str(height) + '  ' + str(255) + '\n'
+        if sys.version_info < (3,):
+            pgm_header = 'P5' + '\n' + str(width) + '  ' + str(height) + '  ' + str(255) + '\n'
+        else:
+            pgm_header = 'P5\n{w}  {h}  255\n'.format(w=width, h=height).encode('ascii')
 
         # write the header to the file
         fout.write(pgm_header)

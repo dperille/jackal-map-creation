@@ -1,5 +1,10 @@
 import math
-import Queue
+try:
+    # Python 3
+    from queue import PriorityQueue
+except ImportError:
+    # Python 2
+    from Queue import PriorityQueue
 import numpy as np
   
 class DifficultyMetrics:
@@ -186,7 +191,7 @@ class DifficultyMetrics:
   # returns the distance to the closest obstacle at point (r, c)
   # returns 0 if self.map[r][c] is an obstacle, 1 if an adjacent non-diagonal cell is an obstacle, etc.
   def _dist_closest_wall(self, r, c):
-    pq = Queue.PriorityQueue()
+    pq = PriorityQueue()
     first_wrapper = self.Wrapper(0, r, c)
     pq.put(first_wrapper)
     visited = {(r, c) : first_wrapper}
